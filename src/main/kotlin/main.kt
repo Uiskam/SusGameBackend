@@ -1,6 +1,7 @@
+import io.javalin.Javalin
 
-// Hello World Program
-
-fun main(args : Array<String>) {
-    println("Hello, World!")
+fun main() {
+    val app = Javalin.create(/*config*/)
+        .get("/") { ctx -> ctx.result("Hello World") }
+        .start(7070)
 }
