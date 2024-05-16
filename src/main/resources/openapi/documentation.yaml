@@ -1,0 +1,124 @@
+openapi: "3.1.0"
+info:
+  title: "SusGameBackend API"
+  description: "SusGameBackend API"
+  version: "1.0.0"
+servers:
+- url: "http://0.0.0.0:8080"
+paths:
+  /game:
+    get:
+      description: ""
+      responses:
+        "200":
+          description: "OK"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "No games found"
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/Game"
+              examples:
+                Example#1:
+                  description: ""
+                  value: []
+    post:
+      description: ""
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Game"
+        required: true
+      responses:
+        "201":
+          description: "Created"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Customer stored correctly"
+  /game/{id}:
+    delete:
+      description: ""
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            '*/*':
+              schema:
+                type: "object"
+        "202":
+          description: "Accepted"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Customer removed correctly"
+        "404":
+          description: "Not Found"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Not Found"
+    get:
+      description: ""
+      parameters:
+      - name: "id"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Missing id"
+        "404":
+          description: "Not Found"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: ""
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Game"
+components:
+  schemas:
+    Game:
+      type: "object"
+      properties:
+        name:
+          type: "string"
+      required:
+      - "name"
