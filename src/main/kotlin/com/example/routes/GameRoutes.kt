@@ -18,59 +18,64 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import com.example.*
+import kotlinx.serialization.Serializable
 import java.util.*
 import kotlin.collections.LinkedHashSet
 
 var gameStorage = GameStorage()
 
+@Serializable
+data class errorObj(val message: String)
+
 fun Route.gameRouting() {
     route("/games") {
         get {
-            println(";asbufaskhfbwsfvbkwjefvbwejkfvwejhfvbbfvjsdvbfjsdbvjhsdbvjhsdbvjsdbv")
-            if (gameStorage.gameList.isNotEmpty()) {
-                call.respond(gameStorage.getReturnableData())
-            } else {
-                call.respondText("No games found", status = HttpStatusCode.OK)
-            }
+            call.respond(gameStorage.getReturnableData())
         }
-        get("{gameName}") {
-            val gameName = call.parameters["gameName"] ?: return@get call.respondText(
-                "Missing name",
-                status = HttpStatusCode.BadRequest
+        get("{gameId}") {
+            val gameId = call.parameters["gameId"]?.toIntOrNull() ?:
+            return@get call.respond(
+                HttpStatusCode.BadRequest,
+                errorObj("Missing query param: gameId")
             )
-            val gameFound = gameStorage.findGame(gameName)
+
+            val gameFound = gameStorage.findGame(gameId)
             if (gameFound == null) {
-                call.respondText("Game not found", status = HttpStatusCode.NotFound)
-            } else call.respond(gameFound.getDataToReturn().toString() ?: "Game not found")
+                call.respond(HttpStatusCode.BadRequest, errorObj("Game with id $gameId not found"))
+            } else call.respond(gameFound.getDataToReturn().toString())
         }
-        post("{gameName}") {
-            val gameName = call.parameters["gameName"] ?: return@post call.respondText(
+
+        @Serializable
+        data class GameCreationRequest(val gameName: String, val maxNumberOfPlayers: Int=4, val gamePin: String? = null)
+        post {
+            val request = call.receive<GameCreationRequest>()
+            gameStorage.add(Game(request.gameName, request.maxNumberOfPlayers, request.gamePin))
+            call.respondText("Game created correctly", status = HttpStatusCode.Created)
+        }
+        delete("{gameId}") {
+            val gameId = call.parameters["gameId"]?.toIntOrNull() ?: return@delete call.respondText(
                 "Missing name",
                 status = HttpStatusCode.BadRequest
             )
-            gameStorage.add(Game(gameName))
-            call.respondText("Game stored correctly", status = HttpStatusCode.Created)
-        }
-        delete("{gameName}") {
-            val gameName = call.parameters["gameName"] ?: return@delete call.respondText(
-                "Missing name",
-                status = HttpStatusCode.BadRequest
-            )
-            gameStorage.remove(gameName)
-            call.respondText("Game removed correctly", status = HttpStatusCode.BadRequest)
+            val game = gameStorage.findGame(gameId)
+            if (game == null) {
+                call.respond(HttpStatusCode.NotFound, errorObj("Game with $gameId not found"))
+                return@delete
+            }
+            gameStorage.remove(game)
+            call.respondText("Game removed correctly", status = HttpStatusCode.OK)
         }
 
         webSocket("/join") {
-            println(";asbufaskhfbwsfvbkwjefvbwejkfvwejhfvbbfvjsdvbfjsdbvjhsdbvjhsdbvjsdbv")
-            val gameName = call.request.queryParameters["gameName"]
+            val gameId = call.request.queryParameters["gameId"]?.toIntOrNull()
             val playerName = call.request.queryParameters["playerName"]
-            if (gameName == null || playerName == null) {
-                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Missing gameName or playerName"))
+            if (gameId == null || playerName == null) {
+                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, errorObj("Missing gameName or playerName").toString()))
                 return@webSocket
             }
-            val game = gameStorage.findGame(gameName)
+            val game = gameStorage.findGame(gameId)
             if (game == null) {
-                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Game not found"))
+                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, errorObj("Game with id $gameId not found").toString()))
                 return@webSocket
             }
 

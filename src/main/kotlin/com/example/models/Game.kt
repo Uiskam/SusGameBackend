@@ -1,10 +1,25 @@
 package com.example.models
 
 import com.example.Connection
+import kotlinx.serialization.Serializable
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 
+@Serializable
+data class GameReturnData(val id: Int,
+                          val name: String,
+                          val maxNumberOfPlayers: Int,
+                          val players: List<String>)
 
-data class Game(val name:String, val playerMap:MutableMap<Connection, String> = ConcurrentHashMap()) {
+class Game(val name:String,
+                val maxNumberOfPlayers:Int,
+                val gamePin:String? = null) {
+    companion object {
+        val lastId = AtomicInteger(0)
+    }
+    val id = lastId.getAndIncrement()
+
+    private val playerMap:MutableMap<Connection, String> = ConcurrentHashMap()
     fun addPlayer(connection: Connection, playerName: String) {
         if (playerMap.containsValue(playerName)) {
             throw IllegalArgumentException("Player with name $playerName already exists")
@@ -14,15 +29,13 @@ data class Game(val name:String, val playerMap:MutableMap<Connection, String> = 
     fun removePlayer(playerName: String) {
         playerMap.entries.removeIf { it.value == playerName }
     }
-    fun getPlayerNames(): List<String> {
-        return playerMap.values.toList()
-    }
     fun getPlayersCount(): Int {
         return playerMap.size
     }
-    fun getDataToReturn(): Pair<String, List<String>> {
-        return Pair(name, getPlayerNames())
+    fun getDataToReturn(): GameReturnData {
+        return GameReturnData(id, name, maxNumberOfPlayers, playerMap.values.toList())
     }
+
     fun getPlayers(): MutableMap<Connection, String> {
         return playerMap
     }
@@ -30,22 +43,21 @@ data class Game(val name:String, val playerMap:MutableMap<Connection, String> = 
 
 class GameStorage(var gameList:MutableList<Game> = mutableListOf()) {
     fun add(game: Game) {
-        if (this.findGame(game.name) != null) {
+        if (this.findGame(game.id) != null) {
             throw IllegalArgumentException("Game with name ${game.name} already exists")
         }
         gameList.add(game)
     }
-    fun remove(gameName: String) {
-        val game = findGame(gameName) ?: throw IllegalArgumentException("Game with name $gameName not found")
+    fun remove(game: Game) {
         gameList.remove(game)
     }
-    fun findGame(name: String): Game? {
-        return gameList.find { it.name == name }
+    fun findGame(gameId: Int): Game? {
+        return gameList.find { it.id == gameId }
     }
     fun getAllGames(): List<Game> {
         return gameList
     }
-    fun getReturnableData(): List<Pair<String, List<String>>> {
+    fun getReturnableData(): List<GameReturnData> {
         return gameList.map { it.getDataToReturn() }
     }
 
