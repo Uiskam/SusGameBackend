@@ -23,15 +23,12 @@ fun Route.gameRouting() {
             call.respond(gameStorage.getReturnableData())
         }
         get("{gameId}") {
-            val gameId = call.parameters["gameId"]?.toIntOrNull() ?: return@get call.respond(
-                HttpStatusCode.BadRequest,
-                ErrorObj("Missing query param: gameId")
-            )
-
-            val foundGame = gameStorage.findGame(gameId)
-            if (foundGame == null) {
-                call.respond(HttpStatusCode.NotFound, ErrorObj("Game with id $gameId not found"))
-            } else call.respond(foundGame.getDataToReturn().toString())
+            val gameId = call.parameters["gameId"]?.toInt()
+            gameId?.let {
+                gameStorage.findGameById(gameId)?.let {
+                    call.respond(it.getDataToReturn().toString())
+                } ?: call.respond(HttpStatusCode.NotFound, ErrorObj("Game with id $gameId not found"))
+            }
         }
 
         @Serializable
@@ -40,23 +37,34 @@ fun Route.gameRouting() {
             val maxNumberOfPlayers: Int = 4,
             val gamePin: String? = null
         )
+
+        @Serializable
+        data class GameCreationResponse(
+            val gameId: Int
+        )
         post {
             val request = call.receive<GameCreationRequest>()
-            gameStorage.add(Game(request.gameName, request.maxNumberOfPlayers, request.gamePin))
-            call.respond(HttpStatusCode.Created)
+            gameStorage.findGameByName(request.gameName)?.let {
+                call.respond(HttpStatusCode.Conflict, ErrorObj("Game with name ${request.gameName} already exists"))
+                //to jest do debaty czy chcemy wgl unikalnośc nazw gier
+            } ?: run {
+                val newGame = Game(request.gameName, request.maxNumberOfPlayers, request.gamePin)
+                gameStorage.add(newGame)
+                call.respond(HttpStatusCode.Created, GameCreationResponse(newGame.id))
+            }
         }
         delete("{gameId}") {
-            val gameId = call.parameters["gameId"]?.toIntOrNull() ?: return@delete call.respondText(
-                "Missing name",
-                status = HttpStatusCode.BadRequest
-            )
-            val game = gameStorage.findGame(gameId)
-            if (game == null) {
-                call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
-            } else {
-                gameStorage.remove(game)
-                call.respond(HttpStatusCode.OK)
+            val gameId = call.parameters["gameId"]?.toInt()
+            gameId?.let {
+                val game = gameStorage.findGameById(gameId)
+                if (game == null) {
+                    call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
+                } else {
+                    gameStorage.remove(game)
+                    call.respond(HttpStatusCode.OK)
+                }
             }
+
         }
 
         webSocket("/join") {
@@ -71,7 +79,7 @@ fun Route.gameRouting() {
                 )
                 return@webSocket
             }
-            val game = gameStorage.findGame(gameId)
+            val game = gameStorage.findGameById(gameId)
             if (game == null) {
                 close(
                     CloseReason(

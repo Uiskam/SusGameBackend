@@ -51,9 +51,6 @@ class Game(
 
 class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {
     fun add(game: Game) {
-        if (this.findGame(game.id) != null) {
-            throw IllegalArgumentException("Game with name ${game.id} already exists")
-        }
         gameList.add(game)
     }
 
@@ -61,8 +58,12 @@ class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {
         gameList.remove(game)
     }
 
-    fun findGame(gameId: Int): Game? {
+    fun findGameById(gameId: Int): Game? {
         return gameList.find { it.id == gameId }
+    }
+
+    fun findGameByName(gameName: String): Game? {
+        return gameList.find { it.name == gameName }
     }
 
     fun getAllGames(): List<Game> {
