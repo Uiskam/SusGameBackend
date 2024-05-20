@@ -1,7 +1,7 @@
-package com.example
+package edu.agh.susgame.back
 
-import com.example.models.GameStorage
-import com.example.plugins.*
+import edu.agh.susgame.back.plugins.configureRouting
+import edu.agh.susgame.back.plugins.configureSerialization
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {

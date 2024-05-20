@@ -1,10 +1,9 @@
-package com.example.plugins
+package edu.agh.susgame.back.plugins
 
-import com.example.routes.gameRouting
+import edu.agh.susgame.back.routes.gameRouting
 import io.ktor.server.application.*
 import io.ktor.server.plugins.openapi.*
 import io.ktor.server.plugins.swagger.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import java.time.Duration
@@ -19,6 +18,6 @@ fun Application.configureRouting() {
     routing {
         gameRouting()
         swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
-        openAPI(path="openapi", swaggerFile = "openapi/documentation.yaml")
+        openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
     }
 }

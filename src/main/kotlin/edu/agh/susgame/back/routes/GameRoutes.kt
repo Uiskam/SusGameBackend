@@ -1,8 +1,8 @@
-package com.example.routes
+package edu.agh.susgame.back.routes
 
-import com.example.Connection
-import com.example.models.Game
-import com.example.models.GameStorage
+import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.models.Game
+import edu.agh.susgame.back.models.GameStorage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,22 +10,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
-import java.time.Duration
-import java.util.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.websocket.*
-import io.ktor.websocket.*
-import com.example.*
 import kotlinx.serialization.Serializable
-import java.util.*
-import kotlin.collections.LinkedHashSet
 
 var gameStorage = GameStorage()
 
 @Serializable
-data class ErrorObj(val message: String)
+data class ErrorObj(val errorMessage: String)
 
 fun Route.gameRouting() {
     route("/games") {
@@ -33,24 +23,27 @@ fun Route.gameRouting() {
             call.respond(gameStorage.getReturnableData())
         }
         get("{gameId}") {
-            val gameId = call.parameters["gameId"]?.toIntOrNull() ?:
-            return@get call.respond(
+            val gameId = call.parameters["gameId"]?.toIntOrNull() ?: return@get call.respond(
                 HttpStatusCode.BadRequest,
                 ErrorObj("Missing query param: gameId")
             )
 
-            val gameFound = gameStorage.findGame(gameId)
-            if (gameFound == null) {
-                call.respond(HttpStatusCode.BadRequest, ErrorObj("Game with id $gameId not found"))
-            } else call.respond(gameFound.getDataToReturn().toString())
+            val foundGame = gameStorage.findGame(gameId)
+            if (foundGame == null) {
+                call.respond(HttpStatusCode.NotFound, ErrorObj("Game with id $gameId not found"))
+            } else call.respond(foundGame.getDataToReturn().toString())
         }
 
         @Serializable
-        data class GameCreationRequest(val gameName: String, val maxNumberOfPlayers: Int=4, val gamePin: String? = null)
+        data class GameCreationRequest(
+            val gameName: String,
+            val maxNumberOfPlayers: Int = 4,
+            val gamePin: String? = null
+        )
         post {
             val request = call.receive<GameCreationRequest>()
             gameStorage.add(Game(request.gameName, request.maxNumberOfPlayers, request.gamePin))
-            call.respondText("Game created correctly", status = HttpStatusCode.Created)
+            call.respond(HttpStatusCode.Created)
         }
         delete("{gameId}") {
             val gameId = call.parameters["gameId"]?.toIntOrNull() ?: return@delete call.respondText(
@@ -60,22 +53,32 @@ fun Route.gameRouting() {
             val game = gameStorage.findGame(gameId)
             if (game == null) {
                 call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
-                return@delete
+            } else {
+                gameStorage.remove(game)
+                call.respond(HttpStatusCode.OK)
             }
-            gameStorage.remove(game)
-            call.respondText("Game removed correctly", status = HttpStatusCode.OK)
         }
 
         webSocket("/join") {
             val gameId = call.request.queryParameters["gameId"]?.toIntOrNull()
             val playerName = call.request.queryParameters["playerName"]
             if (gameId == null || playerName == null) {
-                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, ErrorObj("Missing gameName or playerName").toString()))
+                close(
+                    CloseReason(
+                        CloseReason.Codes.CANNOT_ACCEPT,
+                        ErrorObj("Missing gameName or playerName").toString()
+                    )
+                )
                 return@webSocket
             }
             val game = gameStorage.findGame(gameId)
             if (game == null) {
-                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, ErrorObj("Game with id $gameId not found").toString()))
+                close(
+                    CloseReason(
+                        CloseReason.Codes.CANNOT_ACCEPT,
+                        ErrorObj("Game with id $gameId not found").toString()
+                    )
+                )
                 return@webSocket
             }
 

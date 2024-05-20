@@ -1,6 +1,5 @@
-package com.example
+package edu.agh.susgame.back
 
 import io.ktor.websocket.*
-import java.util.concurrent.atomic.*
 
 class Connection(val session: DefaultWebSocketSession)
