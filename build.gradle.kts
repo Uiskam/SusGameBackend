@@ -2,6 +2,7 @@
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
+val result_version: String by project
 
 plugins {
     kotlin("jvm") version "1.9.24"
@@ -34,4 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-server-openapi:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    implementation("com.michael-bull.kotlin-result:kotlin-result:$result_version")
+    implementation("io.ktor:ktor-server-status-pages:$ktor_version")
+    implementation("io.ktor:ktor-server-request-validation:$ktor_version")
 }
