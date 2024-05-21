@@ -13,6 +13,8 @@ class Buffer(
     val players: HashSet<Player>
 ) {
 
+    private var spaceLeft: Int = bufferSize // represents how much space is left in the buffer
+
     // Part of the buffer representing the values sent to the buffer from each player
     private var bufferInput: HashMap<Player, Int> = players.associateWith { 0 }.toMap() as HashMap<Player, Int>
 
@@ -25,24 +27,29 @@ class Buffer(
      * @param player The player whose buffer to add the input to.
      * @param value The value to add to the buffer.
      */
-    public fun newInputFor(player: Player, value: Int) {
+    public fun newInput(player: Player, value: Int) {
         bufferInput[player] = value
     }
 
     /**
      * Retrieves and removes a specific value from the buffer associated with a player.
+     * Updates the variable representing free space in the buffer.
      *
      * @param player The player whose buffer to operate on.
      * @param value The value to retrieve and remove from the buffer.
      * @return The retrieved value from the buffer.
      */
-    public fun getAndDeleteFrom(player: Player, value: Int): Int {
+    public fun getAndDelete(player: Player, value: Int): Int {
         val originalValue: Int = bufferState.getValue(player)
         val newValue: Int = originalValue - value
 
         bufferState[player] = maxOf(0, newValue)
 
-        return maxOf(0, newValue)
+        val valueSent: Int = minOf(originalValue, value)
+
+        spaceLeft += valueSent
+
+        return valueSent
     }
 
     /**
@@ -55,10 +62,12 @@ class Buffer(
             for (player in players) {
 
                 if (bufferInput[player] != 0) {
+                    if (spaceLeft == 0) break
+
                     bufferInput[player] = bufferInput[player]!! - 1
                     bufferState[player] = bufferState[player]!! + 1
 
-                    if (bufferState[player] == bufferSize) break
+                    spaceLeft -= 1
                 }
 
             }

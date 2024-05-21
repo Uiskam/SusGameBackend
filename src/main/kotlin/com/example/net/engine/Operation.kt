@@ -28,9 +28,9 @@ class Operation (
         startNode.updateBuffer()
 
         // Retrieve and delete the value from the buffer of the player at the starting node
-        val realValue: Int = startNode.getAndDeleteFrom(player, value)
+        val valueSent: Int = startNode.getAndDeleteFrom(player, value)
 
         // Add the transferred value to the buffer of the player at the ending node
-        endNode.newInputFor(player, realValue)
+        endNode.newInputFor(player, valueSent)
     }
 }

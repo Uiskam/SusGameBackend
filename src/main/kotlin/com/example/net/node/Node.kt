@@ -34,7 +34,7 @@ class Node(
      * @return The value retrieved from the buffer.
      */
     public fun getAndDeleteFrom(player: Player, value: Int): Int {
-        return buffer.getAndDeleteFrom(player, value)
+        return buffer.getAndDelete(player, value)
     }
 
     /**
@@ -44,7 +44,7 @@ class Node(
      * @param value The value to add to the buffer.
      */
     public fun newInputFor(player: Player, value: Int) {
-        buffer.newInputFor(player, value)
+        buffer.newInput(player, value)
     }
 
     /**
