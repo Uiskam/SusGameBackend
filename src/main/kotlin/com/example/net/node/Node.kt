@@ -1,67 +1,59 @@
-package node
+package com.example.net.node
 
-import player.Player
+import com.example.net.Edge
+import com.example.net.Packet
+
 
 /**
- * Represents a node in a graph of the net.
+ * Abstract class representing the node in the net.
  *
- * @property index The index of the node (Supposed to be unique).
- * @property bufferSize The size of the buffer associated with the node.
- * @property players The set of all the players.
+ * @param index Index of the node. Supposed to be unique.
  */
-class Node(
-    private val index: Int,
-    private val bufferSize: Int,
-    private val players: HashSet<Player>
+abstract class Node (
+    internal val index: Int
 ) {
 
-    // Buffer associated with the node
-    private val buffer: Buffer = Buffer(bufferSize, players)
+    // LinkedHashMap for a fixed order for use in Round Robin algorithm
+    internal val neighbors: LinkedHashMap<Node, Edge> = linkedMapOf()
 
+    internal var numNeighbours: Int = 0
 
     /**
-     * Updates the buffer.
+     * Adds a new neighbor with the edge.
+     *
+     * @param node The new neighbor.
+     * @param edge Edge connecting this node and the other one.
      */
-    public fun updateBuffer() {
-        buffer.update()
+    public open fun addNeighbour(node: Node, edge: Edge) {
+        neighbors[node] = edge
+        numNeighbours++
     }
 
     /**
-     * Returns and removes a specific value from the buffer associated with a player.
+     * Retrieves the neighbors of this node.
      *
-     * @param player The player whose buffer to operate on.
-     * @param value The value to get and remove from the buffer.
-     * @return The value retrieved from the buffer.
+     * @return HashSet of the nodes
      */
-    public fun getAndDeleteFrom(player: Player, value: Int): Int {
-        return buffer.getAndDelete(player, value)
+    public fun getNeighbors(): HashSet<Node> {
+        return HashSet( neighbors.keys )
     }
 
     /**
-     * Adds a new input value to the buffer associated with a player.
-     *
-     * @param player The player whose buffer to add the input to.
-     * @param value The value to add to the buffer.
+     * Abstract function accepting the packet.
      */
-    public fun newInputFor(player: Player, value: Int) {
-        buffer.newInput(player, value)
-    }
+    abstract fun collectPackets()
 
     /**
-     * Returns the buffer value associated with a player.
-     *
-     * @param player The player whose buffer value to get.
-     * @return The buffer value associated with the player, null if the player is not found.
+     * Abstract function accepting the packet.
      */
-    public fun getPlayerBuffer(player: Player): Int? {
-        return buffer.getPlayerBuffer(player)
-    }
+    abstract fun pushPacket(packet: Packet)
 
     /**
-     * Computes the hash code of the node based on its index.
-     *
-     * @return The hash code of the node.
+     * Abstract function returning the packet directed to this node.
      */
+    abstract fun getPacket(node: Node): Packet?
+
+    // Functions like hashCode() and equals() are overridden here
     override fun hashCode(): Int {
         return index
     }
@@ -71,4 +63,5 @@ class Node(
         if (other !is Node) return false
         return this.index == other.index
     }
+
 }
