@@ -12,7 +12,23 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.Serializable
 
-var gameStorage = GameStorage()
+var gameStorage = GameStorage(
+    gameList = listOf(
+        Game(
+            name = "Gra nr 1",
+            maxNumberOfPlayers = 5,
+        ),
+        Game(
+            name = "Gra inna",
+            maxNumberOfPlayers = 6,
+            gamePin = "pin",
+        ),
+        Game(
+            name = "Gra III",
+            maxNumberOfPlayers = 3,
+        ),
+    ).toMutableList()
+)
 
 @Serializable
 data class ErrorObj(val errorMessage: String)
@@ -26,7 +42,7 @@ fun Route.gameRouting() {
             val gameId = call.parameters["gameId"]?.toInt()
             gameId?.let {
                 gameStorage.findGameById(gameId)?.let {
-                    call.respond(it.getDataToReturn().toString())
+                    call.respond(it.getDataToReturn())
                 } ?: call.respond(HttpStatusCode.NotFound, ErrorObj("Game with id $gameId not found"))
             }
         }
