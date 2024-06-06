@@ -2,20 +2,23 @@ package com.example.net.node
 
 import com.example.net.Packet
 
-class Server(
+class Server (
     index: Int
-): Node(index) {
+): Receiving(index) {
 
+    private var packetsReceived = 0 // Variable representing the progress of the game.
 
-    override fun collectPackets() {
-        TODO("Not yet implemented")
-    }
-
+    /**
+     * Updates the game progress by receiving the packet.
+     */
     override fun pushPacket(packet: Packet) {
-        TODO("Not yet implemented")
+        packetsReceived++
     }
 
+    /**
+     * Override function always returning null: Server does not send packets to any Node.
+     */
     override fun getPacket(node: Node): Packet? {
-        TODO("Not yet implemented")
+        return null
     }
 }

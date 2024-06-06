@@ -44,12 +44,7 @@ abstract class Node (
     abstract fun collectPackets()
 
     /**
-     * Abstract function accepting the packet.
-     */
-    abstract fun pushPacket(packet: Packet)
-
-    /**
-     * Abstract function returning the packet directed to this node.
+     * Abstract function returning the packet directed to specified node.
      */
     abstract fun getPacket(node: Node): Packet?
 

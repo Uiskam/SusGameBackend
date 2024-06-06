@@ -75,5 +75,18 @@ class NetGraph {
         return HashSet( structure.keys )
     }
 
+    /**
+     * Checks if two nodes are neighbors in NetGraph structure.
+     *
+     * @param node1 First node.
+     * @param node2 Second node.
+     * @return Boolean value if the second node is in the neighbor list of the first node.
+     */
+    public fun areNeighbors(node1: Node, node2: Node): Boolean {
+        val neighbors = getNeighbours(node1)
+        return neighbors?.contains(node2) ?: false
+    }
+
+
 
 }

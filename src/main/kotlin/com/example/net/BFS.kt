@@ -1,9 +1,8 @@
 package com.example.net
 
 import com.example.net.node.Node
-import com.example.net.node.Sending
-import com.example.net.node.Server
-import jdk.management.jfr.RecordingInfo
+import com.example.net.node.Receiving
+import com.example.net.node.Host
 
 
 /**
@@ -14,7 +13,7 @@ import jdk.management.jfr.RecordingInfo
  */
 class BFS (
     private val net: NetGraph,
-    private val root: Server
+    private val root: Host
 ) {
 
     // HashSet of all nodes
@@ -34,7 +33,7 @@ class BFS (
             val currentNode = queue.removeFirst()
             visited[currentNode] = true
 
-            if (!(currentNode is Sending)) continue
+            if (!(currentNode is Receiving)) continue
 
             currentNode.collectPackets() // Collect packets from all neighbors
 
