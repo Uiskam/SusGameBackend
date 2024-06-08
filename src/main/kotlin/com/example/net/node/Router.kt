@@ -9,10 +9,10 @@ import com.example.net.Packet
  * @param index
  * @param bufferSize Size of the buffer in the router.
  */
-class Router (
+class Router(
     index: Int,
     private var bufferSize: Int
-): Receiving(index) {
+) : Receiving(index) {
 
     // Input buffer containing the packets received in a queue for every neighbor.
     private val inputBuffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
@@ -20,7 +20,9 @@ class Router (
     // Buffer containing the waiting packets in a queue for every neighbour.
     private val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
 
-    init {spaceLeft = bufferSize} // How much space is left in the whole buffer
+    init {
+        spaceLeft = bufferSize
+    } // How much space is left in the whole buffer
 
     // Adds a neighbour both to the neighbours list and the buffer
     public override fun addNeighbour(node: Node, edge: Edge) {
@@ -65,6 +67,17 @@ class Router (
      * Retrieves how much space is left in the router buffer
      */
     public fun getSpaceLeft(): Int = spaceLeft
+
+    /**
+     * Retrieves the all the packets in the buffers. Used for testing purposes.
+     */
+    public fun getPackets(): List<Packet> {
+        val packets = mutableListOf<Packet>()
+        for ((_, queue) in buffer) {
+            packets.addAll(queue)
+        }
+        return packets
+    }
 
 
 }

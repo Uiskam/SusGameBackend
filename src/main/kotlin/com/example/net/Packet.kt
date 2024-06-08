@@ -22,4 +22,6 @@ class Packet (
     }
     public fun next(): Node? = route.firstOrNull()
 
+    public fun getPlayer(): Player = player
+
 }
