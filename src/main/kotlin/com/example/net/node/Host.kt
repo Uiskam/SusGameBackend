@@ -11,6 +11,8 @@ class Host(
     private var route: List<Node>? = null
     private var firstNode: Node? = null // Node that the player is sending packets to
 
+    private var numPacketsSent: Int = 0; // How many packets has the host already sent.
+
     /**
      * Stets a new route for generated packets.
      * Updates the packet route and the first node of the route.
@@ -40,10 +42,17 @@ class Host(
      */
     override fun getPacket(node: Node): Packet? {
         return if (firstNode == node) {
-            Packet(player, route!!)
+            Packet(player, route!!).also { numPacketsSent++ }
         } else {
             null
         }
     }
+
+    /**
+     * Retrieves the number of packets the host has already sent.
+     *
+     * @return The number of packets sent from the start of simulation.
+     */
+    public fun getNumPacketsSent(): Int = numPacketsSent
 
 }

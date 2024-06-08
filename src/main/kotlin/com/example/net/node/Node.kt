@@ -16,8 +16,6 @@ abstract class Node (
     // LinkedHashMap for a fixed order for use in Round Robin algorithm
     internal val neighbors: LinkedHashMap<Node, Edge> = linkedMapOf()
 
-    internal var numNeighbours: Int = 0
-
     /**
      * Adds a new neighbor with the edge.
      *
@@ -26,7 +24,6 @@ abstract class Node (
      */
     public open fun addNeighbour(node: Node, edge: Edge) {
         neighbors[node] = edge
-        numNeighbours++
     }
 
     /**
@@ -39,12 +36,22 @@ abstract class Node (
     }
 
     /**
-     * Abstract function accepting the packet.
+     * Retrieves the number of neighbors of this node.
+     *
+     * @return Size of neighbors list.
+     */
+    public fun countNeighbours(): Int = neighbors.size
+
+    /**
+     * Abstract function accepting the packets from neighbors.
      */
     abstract fun collectPackets()
 
     /**
      * Abstract function returning the packet directed to specified node.
+     *
+     * @param node Node asking for the packets.
+     * @return Packet directed to `node` or null if no packets are directed to `node`.
      */
     abstract fun getPacket(node: Node): Packet?
 

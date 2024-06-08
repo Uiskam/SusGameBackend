@@ -9,10 +9,10 @@ import com.example.net.node.Node
 class NetGraph {
 
     // Structure of the graph
-    val structure: HashMap<Node, HashMap<Node, Edge>> = HashMap()
+    private val structure: HashMap<Node, HashMap<Node, Edge>> = HashMap()
 
     // Mutable list of edges
-    val edges: HashSet<Edge> = HashSet()
+    private val edges: HashSet<Edge> = HashSet()
 
     /**
      * Adds a new node to the graph.

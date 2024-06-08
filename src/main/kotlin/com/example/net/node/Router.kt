@@ -23,7 +23,6 @@ class Router (
     public override fun addNeighbour(node: Node, edge: Edge) {
         neighbors[node] = edge
         buffer[node] = ArrayDeque()
-        numNeighbours++
     }
 
     /**
@@ -34,19 +33,19 @@ class Router (
      */
     override fun pushPacket(packet: Packet) {
         val nextNode = packet.popNext() // Get the next node end delete it from packet route
-        buffer[nextNode]!!.addFirst(packet) // Add the packet to the buffer directing it to next node. We assume, that the nextNode is always in the neighbors of current node.
+        buffer[nextNode]!!.add(packet) // Add the packet to the buffer directing it to next node. We assume, that the nextNode is always in the neighbors of current node.
         spaceLeft--
     }
 
     /**
      * Retrieves the first packet directed to the specified node.
+     * Updates the `spaceLeft` variable if the packet is sent.
      *
      * @param node Neighbor to get the packet from.
      * @return The first packet from the queue.
      */
-    override fun getPacket(node: Node): Packet? {
-        return buffer[node]?.removeFirstOrNull()?.also { spaceLeft++ }
-    }
+    override fun getPacket(node: Node): Packet? = buffer[node]?.removeFirstOrNull()?.also { spaceLeft++ }
+
 
     /**
      * Retrieves how much space is left in the router buffer

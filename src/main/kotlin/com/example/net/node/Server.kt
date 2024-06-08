@@ -21,4 +21,11 @@ class Server (
     override fun getPacket(node: Node): Packet? {
         return null
     }
+
+    /**
+     * Retrieves the current state of the server.
+     *
+     * @return How many packets has the server already received.
+     */
+    public fun getState(): Int = packetsReceived
 }

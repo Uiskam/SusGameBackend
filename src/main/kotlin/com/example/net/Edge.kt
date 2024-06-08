@@ -3,8 +3,8 @@ package com.example.net
 /**
  * Represents an edge in a graph.
  *
- * @property index The index of the edge (Supposed to be unique).
- * @property weight The weight of the edge.
+ * @param index The index of the edge (Supposed to be unique).
+ * @param weight The weight of the edge.
  */
 
 class Edge (

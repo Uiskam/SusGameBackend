@@ -9,8 +9,9 @@ abstract class Receiving (
     // Pointer on last processed neighbour index for load balancing
     internal var pointer: Int = 0
 
-    // How much space is left in the whole buffer
-    internal var spaceLeft: Int = 0
+    // How much space is left in the whole buffer.
+    // Default value must be greater than 0 for the server to collect the packets properly.
+    internal var spaceLeft: Int = 1
 
 
     /**
@@ -23,13 +24,11 @@ abstract class Receiving (
         val neighborList = neighbors.keys.toList()
 
         var noInputCounter = 0 // Counter checking how many neighbors did not send the packet. If the value grows to `numNeighbors` it means, that there are no packets directed to this node.
-
         while (spaceLeft > 0) {
-            val neighbor = neighborList[pointer]
 
             noInputCounter++
 
-            if (bandwidthLeft[pointer] > 0) { // Checks if the neighbor implements the sending interface
+            if (bandwidthLeft[pointer] > 0) {
                 val packet = neighborList[pointer].getPacket(this)
 
                 if (packet != null) {
@@ -40,9 +39,9 @@ abstract class Receiving (
 
             }
 
-            if (noInputCounter == numNeighbours) break // No neighbors had packets directed to this node.
+            if ( noInputCounter == countNeighbours() ) break // No neighbors had packets directed to this node.
 
-            pointer = (pointer + 1) % numNeighbours // Update the pointer to the next neighbor
+            pointer = (pointer + 1) % countNeighbours() // Update the pointer to the next neighbor
         }
     }
 
