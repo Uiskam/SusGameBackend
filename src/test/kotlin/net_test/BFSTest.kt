@@ -1,16 +1,14 @@
 package net_test
 
+import com.example.net.BFS
 import com.example.net.Edge
 import com.example.net.NetGraph
 import com.example.net.Player
-import com.example.net.BFS
 import com.example.net.node.Host
 import com.example.net.node.Router
 import com.example.net.node.Server
-
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class BFSTest {
 
@@ -18,6 +16,7 @@ class BFSTest {
     private val player1 = Player(1, "player1")
     private val player2 = Player(2, "player2")
     private val player3 = Player(3, "player3")
+
     @Test
     fun test1() {
         // Graph initialisation
@@ -30,7 +29,7 @@ class BFSTest {
         val host2 = Host(2, player2)
         val host3 = Host(3, player3)
         val router4 = Router(4, 6) // router
-        val router5= Router(5, 5) // router
+        val router5 = Router(5, 5) // router
         val server6 = Server(6) // server
 
         // Edges

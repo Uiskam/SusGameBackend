@@ -47,7 +47,7 @@ public class RoutingTest {
     }
 
     @Test
-    fun collectPacketsFromOneHostTest() {
+    fun collectPacketsFromOnePlayerTest() {
         // Graph initialisation
         val graph = NetGraph()
 
@@ -116,7 +116,7 @@ public class RoutingTest {
     }
 
     @Test
-    fun collectPacketsFromMultipleHostsTest() {
+    fun collectPacketsFromMultiplePlayersTest() {
         // Graph initialisation
         val graph = NetGraph()
 
