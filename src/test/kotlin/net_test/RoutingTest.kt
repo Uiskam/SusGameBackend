@@ -95,12 +95,16 @@ public class RoutingTest {
         assertEquals(0, router1.getSpaceLeft())
         assertEquals(5, host0.getNumPacketsSent())
 
+        router1.updateBuffer()
+
         // STEP 2
         router2.collectPackets()
         // spaceLeft in `router2` is supposed to be equal to 3 because weight of `edge0` is 2 and bufferSize of `router1` is 5.
         // spaceLeft in `router1` is supposed to be equal to 3 because `router2` takes 2 packets.
         assertEquals( 3, router2.getSpaceLeft())
         assertEquals(2, router1.getSpaceLeft())
+
+        router2.updateBuffer()
 
         // STEP 3
         server3.collectPackets()
@@ -168,6 +172,8 @@ public class RoutingTest {
         assertEquals(4, host0.getNumPacketsSent())
         assertEquals(2, host1.getNumPacketsSent())
 
+        router3.updateBuffer()
+
         // STEP 2
         router4.collectPackets()
         // As `router3` is added to `router4` neighborList before `host2`, Round Robin starts from `router3`.
@@ -175,6 +181,8 @@ public class RoutingTest {
         assertEquals(0, router4.getSpaceLeft())
         assertEquals(3, router3.getSpaceLeft())
         assertEquals(2, host2.getNumPacketsSent())
+
+        router4.updateBuffer()
 
         // STEP 3
         server5.collectPackets()

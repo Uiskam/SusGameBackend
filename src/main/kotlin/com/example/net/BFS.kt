@@ -13,18 +13,18 @@ import com.example.net.node.Host
  */
 class BFS (
     private val net: NetGraph,
-    private val root: Host
+    private val root: Node
 ) {
 
     // HashSet of all nodes
-    val nodes: HashSet<Node> = net.getNodes()
+    private val nodes: HashSet<Node> = net.getNodes()
 
-    // Visited
-    private val visited: HashMap<Node, Boolean> = nodes.associateWith { false } as HashMap<Node, Boolean>
+    public fun run() {
 
+        // Visited
+        val visited: HashMap<Node, Boolean> = nodes.associateWith { false } as HashMap<Node, Boolean>
 
-    public fun runBFS() {
-
+        //queue
         val queue = ArrayDeque<Node>()
         queue.add(root)
 
@@ -33,7 +33,7 @@ class BFS (
             val currentNode = queue.removeFirst()
             visited[currentNode] = true
 
-            if (!(currentNode is Receiving)) continue
+            if (currentNode !is Receiving) continue
 
             currentNode.collectPackets() // Collect packets from all neighbors
 
@@ -44,9 +44,9 @@ class BFS (
                 if (!visited[neighbour]!!) queue.add(neighbour)
             }
 
-
-
         }
+
+        net.updateBuffers()
 
 
     }

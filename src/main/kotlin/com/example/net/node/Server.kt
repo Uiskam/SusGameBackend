@@ -16,6 +16,11 @@ class Server (
     }
 
     /**
+     * Server does not have any buffers - does nothing.
+     */
+    override fun updateBuffer() {}
+
+    /**
      * Override function always returning null: Server does not send packets to any Node.
      */
     override fun getPacket(node: Node): Packet? {

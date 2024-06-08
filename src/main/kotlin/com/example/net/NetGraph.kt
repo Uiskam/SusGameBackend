@@ -1,6 +1,8 @@
 package com.example.net
 
 import com.example.net.node.Node
+import com.example.net.node.Receiving
+import com.example.net.node.Router
 
 /**
  * Represents the structure of the net as an undirected graph
@@ -85,6 +87,15 @@ class NetGraph {
     public fun areNeighbors(node1: Node, node2: Node): Boolean {
         val neighbors = getNeighbours(node1)
         return neighbors?.contains(node2) ?: false
+    }
+
+    /**
+     * Updates the buffers of all routers.
+     */
+    public fun updateBuffers() {
+        val nodes = getNodes()
+
+        nodes.forEach { node -> node.updateBuffer() }
     }
 
 

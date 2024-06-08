@@ -48,6 +48,11 @@ abstract class Node (
     abstract fun collectPackets()
 
     /**
+     * Abstract function for updating router buffers after BFS algorithm.
+     */
+    abstract fun updateBuffer()
+
+    /**
      * Abstract function returning the packet directed to specified node.
      *
      * @param node Node asking for the packets.

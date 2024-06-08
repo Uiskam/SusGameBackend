@@ -39,9 +39,9 @@ abstract class Receiving (
 
             }
 
-            if ( noInputCounter == countNeighbours() ) break // No neighbors had packets directed to this node.
-
             pointer = (pointer + 1) % countNeighbours() // Update the pointer to the next neighbor
+            
+            if ( noInputCounter == countNeighbours() ) break // No neighbors had packets directed to this node.
         }
     }
 

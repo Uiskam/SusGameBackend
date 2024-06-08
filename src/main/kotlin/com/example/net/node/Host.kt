@@ -35,6 +35,11 @@ class Host(
     override fun collectPackets() {}
 
     /**
+     * Host does not have any buffers - does nothing.
+     */
+    override fun updateBuffer() {}
+
+    /**
      * Creates a new packet if the node asking for the packet is the first in the route.
      *
      * @param node Node asking for the packet.

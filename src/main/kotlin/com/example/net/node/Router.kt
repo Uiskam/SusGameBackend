@@ -14,15 +14,29 @@ class Router (
     private var bufferSize: Int
 ): Receiving(index) {
 
-    // Buffer containing the waiting packets in a queue for every neighbour
-    val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
+    // Input buffer containing the packets received in a queue for every neighbor.
+    private val inputBuffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
+
+    // Buffer containing the waiting packets in a queue for every neighbour.
+    private val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
 
     init {spaceLeft = bufferSize} // How much space is left in the whole buffer
 
     // Adds a neighbour both to the neighbours list and the buffer
     public override fun addNeighbour(node: Node, edge: Edge) {
         neighbors[node] = edge
-        buffer[node] = ArrayDeque()
+        inputBuffer[node] = ArrayDeque<Packet>()
+        buffer[node] = ArrayDeque<Packet>()
+    }
+
+    /**
+     * Adds the packets from the inputBuffer to the queues in the buffer and clears the inputBuffer queues.
+     */
+    override fun updateBuffer() {
+        for ((node, inputQueue) in inputBuffer) {
+            buffer[node]?.addAll(inputQueue)
+            inputQueue.clear()
+        }
     }
 
     /**
@@ -33,7 +47,7 @@ class Router (
      */
     override fun pushPacket(packet: Packet) {
         val nextNode = packet.popNext() // Get the next node end delete it from packet route
-        buffer[nextNode]!!.add(packet) // Add the packet to the buffer directing it to next node. We assume, that the nextNode is always in the neighbors of current node.
+        inputBuffer[nextNode]!!.add(packet) // Add the packet to the buffer directing it to next node. We assume, that the nextNode is always in the neighbors of current node.
         spaceLeft--
     }
 
