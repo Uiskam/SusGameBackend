@@ -9,7 +9,6 @@ import com.example.net.node.Server
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 public class RoutingTest {
 
@@ -111,7 +110,7 @@ public class RoutingTest {
         // Server is supposed to accept 2 packets because weight of `edge3` is equal to 2.
         // `router2` is supposed to have the space left equal to 5 - all its packets are sent to the server.
         assertEquals(5, router2.getSpaceLeft())
-        assertEquals(2, server3.getState())
+        assertEquals(2, server3.getPacketsReceived())
 
     }
 
@@ -190,7 +189,7 @@ public class RoutingTest {
         // `router4`  and `router3` should both have one `host0` packet left.
         assertEquals(4, router4.getSpaceLeft())
         assertEquals(5, router3.getSpaceLeft())
-        assertEquals(6, server5.getState())
+        assertEquals(6, server5.getPacketsReceived())
     }
 }
 

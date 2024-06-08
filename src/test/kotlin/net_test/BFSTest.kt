@@ -80,7 +80,7 @@ class BFSTest {
         engine.run()
 
         // server
-        assertEquals(0, server6.getState())
+        assertEquals(0, server6.getPacketsReceived())
 
         // routers
         assertEquals(0, router4.getSpaceLeft())
@@ -98,7 +98,7 @@ class BFSTest {
         engine.run()
 
         // server
-        assertEquals(6, server6.getState())
+        assertEquals(6, server6.getPacketsReceived())
 
         //routers
         assertEquals(2, router4.getSpaceLeft())

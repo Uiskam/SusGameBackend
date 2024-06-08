@@ -32,5 +32,5 @@ class Server (
      *
      * @return How many packets has the server already received.
      */
-    public fun getState(): Int = packetsReceived
+    public fun getPacketsReceived(): Int = packetsReceived
 }
