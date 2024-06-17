@@ -1,19 +1,20 @@
-import edge.Edge
-import node.Node
+package com.example.net
+
+import com.example.net.node.Node
+import com.example.net.node.Receiving
+import com.example.net.node.Router
 
 /**
- * Represents the structure of the net as an undirected graph.
+ * Represents the structure of the net as an undirected graph
  */
+
 class NetGraph {
 
-    // The structure of the graph, mapping nodes to their adjacency lists
-    private var structure: HashMap<Node, HashMap<Node, Edge>> = HashMap()
+    // Structure of the graph
+    private val structure: HashMap<Node, HashMap<Node, Edge>> = HashMap()
 
-    // The set of all edges in the graph
-    private var edges: HashSet<Edge> = HashSet()
-
-    // The number of nodes in the graph
-    private var size = 0
+    // Mutable list of edges
+    private val edges: HashSet<Edge> = HashSet()
 
     /**
      * Adds a new node to the graph.
@@ -22,64 +23,81 @@ class NetGraph {
      */
     public fun addNode(node: Node) {
         structure[node] = HashMap()
-        size++
     }
 
     /**
      * Connects two nodes in the graph with an edge.
+     * Adds the edge to the edge HashSet.
+     * Adds new neighbours to the nodes.
      *
      * @param startNode The starting node of the edge.
      * @param endNode The ending node of the edge.
      * @param edge The edge to connect the nodes with.
      */
-    public fun connect(startNode: Node, endNode: Node, edge: Edge) {
+    public fun addEdge(startNode: Node, endNode: Node, edge: Edge) {
+        // Connect the nodes
         structure[startNode]!![endNode] = edge
         structure[endNode]!![startNode] = edge
 
+        // Add the edge to the edge HashSet
         edges.add(edge)
-    }
 
-    /**
-     * Disconnects two nodes in the graph.
-     *
-     * @param startNode The starting node of the edge to disconnect.
-     * @param endNode The ending node of the edge to disconnect.
-     */
-    public fun disconnect(startNode: Node, endNode: Node) {
-        val edge: Edge = getEdge(startNode, endNode)
-        edges.remove(edge)
-
-        structure[startNode]!!.remove(endNode)
-        structure[endNode]!!.remove(startNode)
-    }
-
-    /**
-     * Retrieves the edge between two nodes in the graph.
-     *
-     * @param startNode The starting node of the edge.
-     * @param endNode The ending node of the edge.
-     * @return The edge between the specified nodes.
-     */
-    public fun getEdge(startNode: Node, endNode: Node): Edge {
-        return structure[startNode]!![endNode]!!
+        // Add the neighbours
+        startNode.addNeighbour(endNode, edge)
+        endNode.addNeighbour(startNode, edge)
     }
 
     /**
      * Retrieves the neighbors of a given node in graph.
      *
-     * @param startNode The node to retrieve neighbors for.
-     * @return The set of neighbor nodes.
+     * @param node The node to retrieve neighbours of.
+     * @return The HashSet of the neighbours. Null if node does not exist.
      */
-    public fun getNeighbours(startNode: Node): MutableSet<Node> {
-        return structure[startNode]!!.keys
+    public fun getNeighbours(node: Node): HashSet<Node>? {
+        return structure[node]?.keys?.let { HashSet(it) }
     }
 
     /**
-     * Retrieves all edges in the graph.
+     * Retrieves the edge between two nodes
      *
-     * @return The set of all edges in the graph.
+     * @param startNode Staring node of the edge.
+     * @param endNode Ending node of the edge.
+     * @return The edge between nodes. Null if edge does not exist.
      */
-    public fun getAllEdges(): HashSet<Edge> {
-        return edges
+    public fun getEdge(startNode: Node, endNode: Node): Edge? {
+        return structure[startNode]?.get(endNode)
     }
+
+    /**
+     * Retrieves all the nodes from the graph.
+     *
+     * @return HashSet of all nodes.
+     */
+    public fun getNodes(): HashSet<Node> {
+        return HashSet( structure.keys )
+    }
+
+    /**
+     * Checks if two nodes are neighbors in NetGraph structure.
+     *
+     * @param node1 First node.
+     * @param node2 Second node.
+     * @return Boolean value if the second node is in the neighbor list of the first node.
+     */
+    public fun areNeighbors(node1: Node, node2: Node): Boolean {
+        val neighbors = getNeighbours(node1)
+        return neighbors?.contains(node2) ?: false
+    }
+
+    /**
+     * Updates the buffers of all routers.
+     */
+    public fun updateBuffers() {
+        val nodes = getNodes()
+
+        nodes.forEach { node -> node.updateBuffer() }
+    }
+
+
+
 }
