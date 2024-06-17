@@ -1,9 +1,9 @@
 package net_test
 
-import com.example.net.*
-import com.example.net.node.Host
-import com.example.net.node.Router
-import com.example.net.node.Server
+import edu.agh.susgame.back.net.*
+import edu.agh.susgame.back.net.node.Host
+import edu.agh.susgame.back.net.node.Router
+import edu.agh.susgame.back.net.node.Server
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

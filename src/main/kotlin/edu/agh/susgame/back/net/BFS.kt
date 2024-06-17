@@ -1,8 +1,7 @@
-package com.example.net
+package edu.agh.susgame.back.net
 
-import com.example.net.node.Node
-import com.example.net.node.Receiving
-import com.example.net.node.Host
+import edu.agh.susgame.back.net.node.Node
+import edu.agh.susgame.back.net.node.Receiving
 
 
 /**

@@ -1,7 +1,7 @@
-package com.example.net.node
+package edu.agh.susgame.back.net.node
 
-import com.example.net.Edge
-import com.example.net.Packet
+import edu.agh.susgame.back.net.Edge
+import edu.agh.susgame.back.net.Packet
 
 /**
  * Represents the router object. Extends Sending.

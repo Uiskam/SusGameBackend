@@ -1,6 +1,6 @@
-package com.example.net.node
+package edu.agh.susgame.back.net.node
 
-import com.example.net.Packet
+import edu.agh.susgame.back.net.Packet
 
 abstract class Receiving (
     index: Int

@@ -1,7 +1,7 @@
-package com.example.net.node
+package edu.agh.susgame.back.net.node
 
-import com.example.net.Packet
-import com.example.net.Player
+import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.back.net.Player
 
 class Host(
     index: Int,

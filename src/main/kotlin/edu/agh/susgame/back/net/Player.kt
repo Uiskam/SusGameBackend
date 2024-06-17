@@ -1,4 +1,4 @@
-package com.example.net
+package edu.agh.susgame.back.net
 
 class Player (
     private val index: Int,
