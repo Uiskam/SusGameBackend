@@ -4,20 +4,14 @@
 
 ### Setup
 ```
-REPO_PATH=$(git rev-parse --show-toplevel)
-cd "$REPO_PATH/.."
-git clone https://github.com/Nepommuck/SusGameDTO.git
-ln -s "$REPO_PATH/../SusGameDTO/src/main/kotlin" "$REPO_PATH/external"
-cd "$REPO_PATH"
+cd scripts
+./update_dto.sh <branch>
+<branch> - branch of SusGameDTO repository in case you want to use different branch than main
 ```
 
 ### Update to newest version
-```
-REPO_PATH=$(git rev-parse --show-toplevel)
-cd "$REPO_PATH/../SusGameDTO"
-git pull
-cd "$REPO_PATH"
-```
+The same as setup
+
 
 ### Modify
 In order to modify DTO, commit to [**SusGameDTO** repository](https://github.com/Nepommuck/SusGameDTO)
