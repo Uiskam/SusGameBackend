@@ -1,4 +1,13 @@
-#!/bin/bash
+DEFAULT_BRANCH_NAME="main"
+
+if [ "$#" -eq 0 ]; then
+  BRANCH_NAME="$DEFAULT_BRANCH_NAME"
+elif [ "$#" -eq 1 ]; then
+  BRANCH_NAME="$1"
+else
+  echo "Usage: $0 [branch_name]"
+  exit 1
+fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 LOCAL_SUSGAME_PATH="$REPO_ROOT/src/main/kotlin/edu/agh/susgame/back/models"
@@ -7,26 +16,20 @@ LOCAL_DTO_PATH="$LOCAL_SUSGAME_PATH/dto"
 TMP_PATH="$REPO_ROOT/scripts/tmp"
 REPO_DTO_PATH="$TMP_PATH/SusGameDTO/src/main/kotlin/edu/agh/susgame/dto"
 
-BRANCH=$1
-
 echo "Cleaning up current DTO files"
 rm -r "$LOCAL_DTO_PATH"
 
-echo "Cloning SusGameDTO repository"
+echo "Cloning $BRANCH_NAME branch from DTO repository"
 mkdir "$TMP_PATH"
 cd "$TMP_PATH" || exit
-git clone https://github.com/Nepommuck/SusGameDTO.git
-
-if [ -n "$BRANCH" ]; then
-  echo "Checking out branch: $BRANCH"
-  cd SusGameDTO || exit
-  git checkout "$BRANCH"
-  cd ..
-fi
+git clone --branch "$BRANCH_NAME" https://github.com/Nepommuck/SusGameDTO.git
 
 echo "Copying cloned files"
 mkdir "$LOCAL_DTO_PATH"
-cp -r "$REPO_DTO_PATH" "$LOCAL_SUSGAME_PATH" || exit
+cp -r "$REPO_DTO_PATH" "$LOCAL_SUSGAME_PATH"
+
+echo "Adding copied files to git"
+git add "$LOCAL_DTO_PATH"
 
 echo "Adding a warning message to files"
 find "$LOCAL_DTO_PATH" -type f | while read -r file; do
