@@ -3,7 +3,8 @@ package edu.agh.susgame.back.routes
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.back.models.Game
 import edu.agh.susgame.back.models.GameStorage
-import edu.agh.susgame.dto.SocketMessage
+import edu.agh.susgame.dto.ClientSocketMessage
+import edu.agh.susgame.dto.ServerSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -16,7 +17,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import kotlinx.serialization.modules.SerializersModule
 
 var gameStorage = GameStorage(
     gameList = listOf(
@@ -40,11 +40,7 @@ var gameStorage = GameStorage(
 data class ErrorObj(val errorMessage: String)
 
 @OptIn(ExperimentalSerializationApi::class)
-private val cbor = Cbor {
-    serializersModule = SerializersModule {
-        contextual(SocketMessage::class, SocketMessage.serializer())
-    }
-}
+private val cbor = Cbor
 
 @OptIn(ExperimentalSerializationApi::class)
 fun Route.gameRouting() {
@@ -125,15 +121,30 @@ fun Route.gameRouting() {
             try {
                 for (frame in incoming) {
                     frame as? Frame.Binary ?: continue
-                    val receivedMessage = cbor.decodeFromByteArray<SocketMessage>(frame.data)
+                    val receivedMessage = cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)
 
-                    val playerMap = game.getPlayers()
-                    playerMap.forEach {
-                        if (it.key != thisConnection) {
-                            val encodedMessage = cbor.encodeToByteArray(receivedMessage)
-                            it.key.session.send(encodedMessage)
+                    when (receivedMessage) {
+                        is ClientSocketMessage.ChatMessage -> {
+                            val playerMap = game.getPlayers()
+                            playerMap.forEach {
+                                val connection = it.key
+                                val playerNickname = it.value
+
+                                if (connection != thisConnection) {
+                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
+                                        authorNickname = playerNickname,
+                                        message = receivedMessage.message,
+                                    )
+
+                                    val encodedServerMessage = cbor.encodeToByteArray(serverMessage)
+                                    connection.session.send(encodedServerMessage)
+                                }
+                            }
+
                         }
+                        else -> {}
                     }
+
                 }
             } catch (e: Exception) {
                 println(e.localizedMessage)
