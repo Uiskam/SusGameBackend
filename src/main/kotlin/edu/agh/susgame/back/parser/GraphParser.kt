@@ -1,3 +1,5 @@
+package edu.agh.susgame.back.parser
+
 import edu.agh.susgame.back.net.*
 import edu.agh.susgame.back.net.node.*
 
