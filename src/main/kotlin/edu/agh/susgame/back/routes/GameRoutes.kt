@@ -40,9 +40,6 @@ var gameStorage = GameStorage(
 data class ErrorObj(val errorMessage: String)
 
 @OptIn(ExperimentalSerializationApi::class)
-private val cbor = Cbor
-
-@OptIn(ExperimentalSerializationApi::class)
 fun Route.gameRouting() {
     route("/games") {
         get {
@@ -121,9 +118,8 @@ fun Route.gameRouting() {
             try {
                 for (frame in incoming) {
                     frame as? Frame.Binary ?: continue
-                    val receivedMessage = cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)
 
-                    when (receivedMessage) {
+                    when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         is ClientSocketMessage.ChatMessage -> {
                             val playerMap = game.getPlayers()
                             playerMap.forEach {
@@ -136,12 +132,13 @@ fun Route.gameRouting() {
                                         message = receivedMessage.message,
                                     )
 
-                                    val encodedServerMessage = cbor.encodeToByteArray(serverMessage)
+                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
                                     connection.session.send(encodedServerMessage)
                                 }
                             }
 
                         }
+
                         else -> {}
                     }
 
