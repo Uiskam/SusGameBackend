@@ -3,6 +3,8 @@ package edu.agh.susgame.back.routes
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.back.models.Game
 import edu.agh.susgame.back.models.GameStorage
+import edu.agh.susgame.dto.ClientSocketMessage
+import edu.agh.susgame.dto.ServerSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -10,7 +12,11 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.cbor.Cbor
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
 
 var gameStorage = GameStorage(
     gameList = listOf(
@@ -33,6 +39,7 @@ var gameStorage = GameStorage(
 @Serializable
 data class ErrorObj(val errorMessage: String)
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Route.gameRouting() {
     route("/games") {
         get {
@@ -51,12 +58,12 @@ fun Route.gameRouting() {
         data class GameCreationRequest(
             val gameName: String,
             val maxNumberOfPlayers: Int = 4,
-            val gamePin: String? = null
+            val gamePin: String? = null,
         )
 
         @Serializable
         data class GameCreationResponse(
-            val gameId: Int
+            val gameId: Int,
         )
         post {
             val request = call.receive<GameCreationRequest>()
@@ -109,16 +116,32 @@ fun Route.gameRouting() {
             val thisConnection = Connection(this)
             game.addPlayer(thisConnection, playerName)
             try {
-                send("You are connected! There are ${game.getPlayersCount()} users here.")
                 for (frame in incoming) {
-                    frame as? Frame.Text ?: continue
-                    val receivedText = frame.readText()
-                    val playerMap = game.getPlayers()
-                    playerMap.forEach {
-                        if (it.key != thisConnection) {
-                            it.key.session.send("[$playerName]: $receivedText")
+                    frame as? Frame.Binary ?: continue
+
+                    when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
+                        is ClientSocketMessage.ChatMessage -> {
+                            val playerMap = game.getPlayers()
+                            playerMap.forEach {
+                                val connection = it.key
+                                val playerNickname = it.value
+
+                                if (connection != thisConnection) {
+                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
+                                        authorNickname = playerNickname,
+                                        message = receivedMessage.message,
+                                    )
+
+                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
+                                    connection.session.send(encodedServerMessage)
+                                }
+                            }
+
                         }
+
+                        else -> {}
                     }
+
                 }
             } catch (e: Exception) {
                 println(e.localizedMessage)
@@ -126,8 +149,6 @@ fun Route.gameRouting() {
                 println("Removing $thisConnection!")
                 game.removePlayer(playerName)
             }
-
         }
     }
-
 }
