@@ -1,8 +1,10 @@
 package edu.agh.susgame.back.rest.games
 
 import edu.agh.susgame.back.Connection
-import edu.agh.susgame.back.models.Game
-import edu.agh.susgame.back.models.GameStorage
+import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
+import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
+import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
+import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 import io.ktor.http.*
@@ -12,29 +14,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.future.await
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 
-var gameStorage = GameStorage(
-    gameList = listOf(
-        Game(
-            name = "Gra nr 1",
-            maxNumberOfPlayers = 5,
-        ),
-        Game(
-            name = "Gra inna",
-            maxNumberOfPlayers = 6,
-            gamePin = "pin",
-        ),
-        Game(
-            name = "Gra III",
-            maxNumberOfPlayers = 3,
-        ),
-    ).toMutableList()
-)
+val gamesRestImpl = GamesRestImpl()
 
 @Serializable
 data class ErrorObj(val errorMessage: String)
@@ -43,51 +30,35 @@ data class ErrorObj(val errorMessage: String)
 fun Route.gameRouting() {
     route("/games") {
         get {
-            call.respond(gameStorage.getReturnableData())
+            call.respond(gamesRestImpl.getAllGames().await())
         }
         get("{gameId}") {
-            val gameId = call.parameters["gameId"]?.toInt()
-            gameId?.let {
-                gameStorage.findGameById(gameId)?.let {
-                    call.respond(it.getDataToReturn())
-                } ?: call.respond(HttpStatusCode.NotFound, ErrorObj("Game with id $gameId not found"))
-            }
+            val lobbyId = call.parameters["gameId"]?.toInt()?.let { LobbyId(it) }
+
+            lobbyId?.let {
+                call.respond(gamesRestImpl.getGame(it).await())
+            } ?: call.respond(GetGameApiResult.OtherError)
         }
 
-        @Serializable
-        data class GameCreationRequest(
-            val gameName: String,
-            val maxNumberOfPlayers: Int = 4,
-            val gamePin: String? = null,
-        )
-
-        @Serializable
-        data class GameCreationResponse(
-            val gameId: Int,
-        )
         post {
             val request = call.receive<GameCreationRequest>()
-            gameStorage.findGameByName(request.gameName)?.let {
-                call.respond(HttpStatusCode.Conflict, ErrorObj("Game with name ${request.gameName} already exists"))
-                //to jest do debaty czy chcemy wgl unikalnośc nazw gier
-            } ?: run {
-                val newGame = Game(request.gameName, request.maxNumberOfPlayers, request.gamePin)
-                gameStorage.add(newGame)
-                call.respond(HttpStatusCode.Created, GameCreationResponse(newGame.id))
-            }
+
+            call.respond(gamesRestImpl.createGame(request.gameName, request.maxNumberOfPlayers, request.gamePin))
         }
+
+        // This method is not a part of contract (frontend doesn't use it), but it can stay for now
         delete("{gameId}") {
             val gameId = call.parameters["gameId"]?.toInt()
             gameId?.let {
-                val game = gameStorage.findGameById(gameId)
-                if (game == null) {
-                    call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
-                } else {
-                    gameStorage.remove(game)
-                    call.respond(HttpStatusCode.OK)
+
+                when (gamesRestImpl.deleteGame(it)) {
+                    DeleteGameResult.Success ->
+                        call.respond(HttpStatusCode.OK)
+
+                    DeleteGameResult.GameDoesNotExist ->
+                        call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
                 }
             }
-
         }
 
         webSocket("/join") {
@@ -102,7 +73,7 @@ fun Route.gameRouting() {
                 )
                 return@webSocket
             }
-            val game = gameStorage.findGameById(gameId)
+            val game = gamesRestImpl.gameStorage.findGameById(gameId)
             if (game == null) {
                 close(
                     CloseReason(
