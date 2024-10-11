@@ -1,10 +1,10 @@
-package edu.agh.susgame.back.routes
+package edu.agh.susgame.back.rest.games
 
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.back.models.Game
 import edu.agh.susgame.back.models.GameStorage
-import edu.agh.susgame.dto.ClientSocketMessage
-import edu.agh.susgame.dto.ServerSocketMessage
+import edu.agh.susgame.dto.socket.ClientSocketMessage
+import edu.agh.susgame.dto.socket.ServerSocketMessage
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -136,7 +136,6 @@ fun Route.gameRouting() {
                                     connection.session.send(encodedServerMessage)
                                 }
                             }
-
                         }
 
                         else -> {}

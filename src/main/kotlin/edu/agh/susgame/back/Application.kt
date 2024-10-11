@@ -2,7 +2,7 @@ package edu.agh.susgame.back
 
 import edu.agh.susgame.back.plugins.configureRouting
 import edu.agh.susgame.back.plugins.configureSerialization
-import edu.agh.susgame.back.routes.ErrorObj
+import edu.agh.susgame.back.rest.games.ErrorObj
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*

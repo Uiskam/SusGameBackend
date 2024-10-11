@@ -31,12 +31,14 @@ cp -r "$REPO_DTO_PATH" "$LOCAL_SUSGAME_PATH"
 echo "Adding copied files to git"
 git add "$LOCAL_DTO_PATH"
 
-echo "Adding a warning message to files"
-find "$LOCAL_DTO_PATH" -type f | while read -r file; do
-  sed -i "1i // WARNING: THIS FILE WAS CLONED AUTOMATICALLY FROM 'SusGameDTO' GITHUB REPOSITORY" "$file"
-  sed -i "2i // IT SHOULD NOT BE EDITED IN ANY WAY" "$file"
-  sed -i "3i // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY" "$file"
-  sed -i "4i // IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'\n" "$file"
+WARNING_TEXT="// WARNING: THIS FILE WAS CLONED AUTOMATICALLY FROM 'SusGameDTO' GITHUB REPOSITORY
+// IT SHOULD NOT BE EDITED IN ANY WAY
+// IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
+// IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'"
+
+find "$LOCAL_DTO_PATH" -type f | while read -r FILE; do
+  echo "$WARNING_TEXT\n\n$(cat "$FILE")" > "$FILE.tmp"
+  mv "$FILE.tmp" "$FILE"
 done
 
 echo "Cleaning up"

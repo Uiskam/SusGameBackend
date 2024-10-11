@@ -3,13 +3,9 @@
 // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
 // IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'
 
-package edu.agh.susgame.dto.server
+package edu.agh.susgame.dto.rest.games.model
 
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class PlayerDTO(
-    val id: Int,
-    val playerName: String,
-    val currentMoney: Int,
+data class GameCreationApiResponse(
+    val gameId: Int,
 )
