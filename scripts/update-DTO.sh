@@ -10,7 +10,7 @@ else
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-LOCAL_SUSGAME_PATH="$REPO_ROOT/src/main/kotlin/edu/agh/susgame/back/models"
+LOCAL_SUSGAME_PATH="$REPO_ROOT/src/main/kotlin/edu/agh/susgame"
 LOCAL_DTO_PATH="$LOCAL_SUSGAME_PATH/dto"
 
 TMP_PATH="$REPO_ROOT/scripts/tmp"
