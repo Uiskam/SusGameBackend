@@ -3,6 +3,7 @@ package edu.agh.susgame.back.rest.games
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
+import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
@@ -24,101 +25,121 @@ import kotlinx.serialization.encodeToByteArray
 val gamesRestImpl = GamesRestImpl()
 
 @Serializable
-data class ErrorObj(val errorMessage: String)
+data class HttpErrorResponseBody(val errorMessage: String)
+
+val HttpUnknownErrorResponseBody = HttpErrorResponseBody("Unknown error")
 
 @OptIn(ExperimentalSerializationApi::class)
 fun Route.gameRouting() {
     route("/games") {
         get {
-            call.respond(gamesRestImpl.getAllGames().await())
-        }
-        get("{gameId}") {
-            val lobbyId = call.parameters["gameId"]?.toInt()?.let { LobbyId(it) }
+            val result = gamesRestImpl.getAllGames().await()
 
-            lobbyId?.let {
-                call.respond(gamesRestImpl.getGame(it).await())
-            } ?: call.respond(GetGameApiResult.OtherError)
-        }
-
-        post {
-            val request = call.receive<GameCreationRequest>()
-
-            call.respond(gamesRestImpl.createGame(request.gameName, request.maxNumberOfPlayers, request.gamePin))
-        }
-
-        // This method is not a part of contract (frontend doesn't use it), but it can stay for now
-        delete("{gameId}") {
-            val gameId = call.parameters["gameId"]?.toInt()
-            gameId?.let {
-
-                when (gamesRestImpl.deleteGame(it)) {
-                    DeleteGameResult.Success ->
-                        call.respond(HttpStatusCode.OK)
-
-                    DeleteGameResult.GameDoesNotExist ->
-                        call.respond(HttpStatusCode.NotFound, ErrorObj("Game with $gameId not found"))
+            call.respond(
+                status = result.let { HttpStatusCode.fromValue(it.responseCode) },
+                message = when (result) {
+                    is GetAllGamesApiResult.Success -> result.lobbies
+                    GetAllGamesApiResult.Error -> HttpUnknownErrorResponseBody
                 }
+            )
+        }
+    }
+    get("{gameId}") {
+        call.parameters["gameId"]
+            ?.toInt()
+            ?.let { LobbyId(it) }
+            ?.let { lobbyId ->
+                val result = gamesRestImpl.getGame(lobbyId).await()
+
+                call.respond(
+                    status = result.let { HttpStatusCode.fromValue(it.responseCode) },
+                    message = when (result) {
+                        is GetGameApiResult.Success -> result.lobby
+                        GetGameApiResult.DoesNotExist -> HttpErrorResponseBody("Game with ${lobbyId.value} not found")
+                        GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
+                    }
+                )
+            }
+    }
+
+    post {
+        val request = call.receive<GameCreationRequest>()
+
+        call.respond(gamesRestImpl.createGame(request.gameName, request.maxNumberOfPlayers, request.gamePin))
+    }
+
+    // This method is not a part of contract (frontend doesn't use it), but it can stay for now
+    delete("{gameId}") {
+        val gameId = call.parameters["gameId"]?.toInt()
+        gameId?.let {
+
+            when (gamesRestImpl.deleteGame(it)) {
+                DeleteGameResult.Success ->
+                    call.respond(HttpStatusCode.OK)
+
+                DeleteGameResult.GameDoesNotExist ->
+                    call.respond(HttpStatusCode.NotFound, HttpErrorResponseBody("Game with $gameId not found"))
             }
         }
+    }
 
-        webSocket("/join") {
-            val gameId = call.request.queryParameters["gameId"]?.toIntOrNull()
-            val playerName = call.request.queryParameters["playerName"]
-            if (gameId == null || playerName == null) {
-                close(
-                    CloseReason(
-                        CloseReason.Codes.CANNOT_ACCEPT,
-                        ErrorObj("Missing gameName or playerName").toString()
-                    )
+    webSocket("/join") {
+        val gameId = call.request.queryParameters["gameId"]?.toIntOrNull()
+        val playerName = call.request.queryParameters["playerName"]
+        if (gameId == null || playerName == null) {
+            close(
+                CloseReason(
+                    CloseReason.Codes.CANNOT_ACCEPT,
+                    HttpErrorResponseBody("Missing gameName or playerName").toString()
                 )
-                return@webSocket
-            }
-            val game = gamesRestImpl.gameStorage.findGameById(gameId)
-            if (game == null) {
-                close(
-                    CloseReason(
-                        CloseReason.Codes.CANNOT_ACCEPT,
-                        ErrorObj("Game with id $gameId not found").toString()
-                    )
+            )
+            return@webSocket
+        }
+        val game = gamesRestImpl.gameStorage.findGameById(gameId)
+        if (game == null) {
+            close(
+                CloseReason(
+                    CloseReason.Codes.CANNOT_ACCEPT,
+                    HttpErrorResponseBody("Game with id $gameId not found").toString()
                 )
-                return@webSocket
-            }
+            )
+            return@webSocket
+        }
 
-            val thisConnection = Connection(this)
-            game.addPlayer(thisConnection, playerName)
-            try {
-                for (frame in incoming) {
-                    frame as? Frame.Binary ?: continue
+        val thisConnection = Connection(this)
+        game.addPlayer(thisConnection, playerName)
+        try {
+            for (frame in incoming) {
+                frame as? Frame.Binary ?: continue
 
-                    when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
-                        is ClientSocketMessage.ChatMessage -> {
-                            val playerMap = game.getPlayers()
-                            playerMap.forEach {
-                                val connection = it.key
-                                val playerNickname = it.value
+                when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
+                    is ClientSocketMessage.ChatMessage -> {
+                        val playerMap = game.getPlayers()
+                        playerMap.forEach {
+                            val connection = it.key
+                            val playerNickname = it.value
 
-                                if (connection != thisConnection) {
-                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
-                                        authorNickname = playerNickname,
-                                        message = receivedMessage.message,
-                                    )
+                            if (connection != thisConnection) {
+                                val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
+                                    authorNickname = playerNickname,
+                                    message = receivedMessage.message,
+                                )
 
-                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
-                                    connection.session.send(encodedServerMessage)
-                                }
+                                val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
+                                connection.session.send(encodedServerMessage)
                             }
                         }
-
-                        else -> {}
                     }
 
+                    else -> {}
                 }
-            } catch (e: Exception) {
-                println(e.localizedMessage)
-            } finally {
-                println("Removing $thisConnection!")
-                game.removePlayer(playerName)
+
             }
+        } catch (e: Exception) {
+            println(e.localizedMessage)
+        } finally {
+            println("Removing $thisConnection!")
+            game.removePlayer(playerName)
         }
     }
 }

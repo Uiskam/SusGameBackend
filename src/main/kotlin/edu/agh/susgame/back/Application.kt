@@ -2,7 +2,7 @@ package edu.agh.susgame.back
 
 import edu.agh.susgame.back.plugins.configureRouting
 import edu.agh.susgame.back.plugins.configureSerialization
-import edu.agh.susgame.back.rest.games.ErrorObj
+import edu.agh.susgame.back.rest.games.HttpErrorResponseBody
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.statuspages.*
@@ -15,10 +15,16 @@ fun main(args: Array<String>) {
 fun Application.module() {
     install(StatusPages) {
         exception<NumberFormatException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, ErrorObj("${cause.message}. The input param is not a valid number"))
+            call.respond(
+                HttpStatusCode.BadRequest,
+                HttpErrorResponseBody("${cause.message}. The input param is not a valid number")
+            )
         }
         exception<IllegalArgumentException> { call, cause ->
-            call.respond(HttpStatusCode.BadRequest, ErrorObj("${cause.message}. The input param is not valid"))
+            call.respond(
+                HttpStatusCode.BadRequest,
+                HttpErrorResponseBody("${cause.message}. The input param is not valid")
+            )
         }
     }
     configureSerialization()
