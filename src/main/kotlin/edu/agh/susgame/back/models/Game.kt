@@ -29,10 +29,6 @@ class Game(
         playerMap.entries.removeIf { it.value == playerName }
     }
 
-    fun getPlayersCount(): Int {
-        return playerMap.size
-    }
-
     fun getDataToReturn(): Lobby {
         return Lobby(
             id = LobbyId(id),
@@ -40,7 +36,7 @@ class Game(
             maxNumOfPlayers = maxNumberOfPlayers,
             // TODO GAME-74 Remove this hardcoded value
             gameTime = 10,
-            playersWaiting = playerMap.values.map { nickname ->
+            playersWaiting = playerMap.values.toList().map { nickname ->
                 Player(
                     // TODO GAME-74 Players are not properly indexed
                     id = PlayerId(nickname.hashCode()),
@@ -48,7 +44,7 @@ class Game(
                     // TODO GAME-74 Player color (HEX value) should be constant for each player
                     colorHex = Random.nextLong(0, 0xFFFFFF),
                 )
-            }.associateBy { it.id }
+            }
         )
     }
 
@@ -72,10 +68,6 @@ class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {
 
     fun findGameByName(gameName: String): Game? {
         return gameList.find { it.name == gameName }
-    }
-
-    fun getAllGames(): List<Game> {
-        return gameList
     }
 
     fun getReturnableData(): List<Lobby> {
