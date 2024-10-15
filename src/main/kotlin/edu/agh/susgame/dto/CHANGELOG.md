@@ -3,11 +3,12 @@
 // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
 // IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'
 
-package edu.agh.susgame.dto.server
+# Current API Version
+API version: `0.2`
 
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class PacketDTO(
-    val id: Int,
-)
+# Changelog
+
+* ...
+* `0.2` - REST models extracted to common repository
+* `0.1` - Api was initialized

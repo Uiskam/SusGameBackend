@@ -3,10 +3,10 @@
 // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
 // IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'
 
-package edu.agh.susgame.dto
+package edu.agh.susgame.dto.socket
 
-import edu.agh.susgame.dto.common.GameStatus
-import edu.agh.susgame.dto.server.*
+import edu.agh.susgame.dto.socket.common.GameStatus
+import edu.agh.susgame.dto.socket.server.*
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,7 +21,6 @@ sealed class ServerSocketMessage {
         val servers: List<ServerDTO>,
         val hosts: List<HostDTO>,
         val edges: List<EdgeDTO>,
-        val packets: List<PacketDTO>,
         val players: List<PlayerDTO>,
         val gameStatus: GameStatus,
     ) : ServerSocketMessage()

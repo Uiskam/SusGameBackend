@@ -1,17 +1,10 @@
 package edu.agh.susgame.back.models
 
 import edu.agh.susgame.back.Connection
-import kotlinx.serialization.Serializable
+import edu.agh.susgame.dto.rest.model.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-
-@Serializable
-data class GameReturnData(
-    val id: Int,
-    val name: String,
-    val maxNumberOfPlayers: Int,
-    val players: List<String>
-)
+import kotlin.random.Random
 
 class Game(
     val name: String,
@@ -36,12 +29,23 @@ class Game(
         playerMap.entries.removeIf { it.value == playerName }
     }
 
-    fun getPlayersCount(): Int {
-        return playerMap.size
-    }
-
-    fun getDataToReturn(): GameReturnData {
-        return GameReturnData(id, name, maxNumberOfPlayers, playerMap.values.toList())
+    fun getDataToReturn(): Lobby {
+        return Lobby(
+            id = LobbyId(id),
+            name = name,
+            maxNumOfPlayers = maxNumberOfPlayers,
+            // TODO GAME-74 Remove this hardcoded value
+            gameTime = 10,
+            playersWaiting = playerMap.values.toList().map { nickname ->
+                Player(
+                    // TODO GAME-74 Players are not properly indexed
+                    id = PlayerId(nickname.hashCode()),
+                    nickname = PlayerNickname(nickname),
+                    // TODO GAME-74 Player color (HEX value) should be constant for each player
+                    colorHex = Random.nextLong(0, 0xFFFFFF),
+                )
+            }
+        )
     }
 
     fun getPlayers(): MutableMap<Connection, String> {
@@ -66,11 +70,7 @@ class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {
         return gameList.find { it.name == gameName }
     }
 
-    fun getAllGames(): List<Game> {
-        return gameList
-    }
-
-    fun getReturnableData(): List<GameReturnData> {
+    fun getReturnableData(): List<Lobby> {
         return gameList.map { it.getDataToReturn() }
     }
 

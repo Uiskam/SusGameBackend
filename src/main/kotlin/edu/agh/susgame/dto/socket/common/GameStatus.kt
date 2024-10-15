@@ -3,11 +3,10 @@
 // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
 // IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'
 
-# Current API Version
-API version: `0.1`
+package edu.agh.susgame.dto.socket.common
 
-
-# Changelog
-
-* ...
-* `0.1` - Api was initialized
+enum class GameStatus {
+    WAITING,
+    RUNNING,
+    FINISHED
+}
