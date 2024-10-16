@@ -1,6 +1,7 @@
 package edu.agh.susgame.back.rest.games
 
 import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.parser.GraphParser
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
@@ -9,6 +10,7 @@ import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
+import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -17,11 +19,13 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.future.await
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
+import java.io.File
 
 val gamesRestImpl = GamesRestImpl()
 
@@ -126,14 +130,14 @@ fun Route.gameRouting() {
             game.addPlayer(thisConnection, playerName)
             try {
                 for (frame in incoming) {
+                    val playerMap = game.getPlayers()
                     frame as? Frame.Binary ?: continue
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         is ClientSocketMessage.ChatMessage -> {
-                            val playerMap = game.getPlayers()
                             playerMap.forEach {
                                 val connection = it.key
-                                val playerNickname = it.value
+                                val playerNickname = it.value.nickname.value
 
                                 if (connection != thisConnection) {
                                     val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
@@ -144,6 +148,53 @@ fun Route.gameRouting() {
                                     val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
                                     connection.session.send(encodedServerMessage)
                                 }
+                            }
+                        }
+
+                        is ClientSocketMessage.GameState -> {
+                            when (receivedMessage.gameStatus) {
+                                GameStatus.WAITING -> TODO()
+                                GameStatus.RUNNING -> {
+                                    when (game.gameStatus) {
+                                        GameStatus.WAITING -> {
+                                            game.gameStatus = GameStatus.RUNNING
+                                            val netGraph = GraphParser().parseFromFile(
+                                                "src/main/resources/graph_files/4/graph0.json",
+                                                playerMap.values.map { player -> player.toNetPlayer()}
+                                            )
+                                            // sends game status updates to all players
+                                            launch {
+                                                while (game.gameStatus == GameStatus.RUNNING) {
+                                                    val gameStateMessage: ServerSocketMessage =
+                                                        ServerSocketMessage.GameState(
+                                                            routers = netGraph.getRouters().map { it.toDTO() },
+                                                            servers = netGraph.getServers().map { it.toDTO() },
+                                                            hosts = netGraph.getHosts().map { it.toDTO() },
+                                                            edges = netGraph.getEdges().map { it.toDTO() },
+                                                            players = playerMap.values.map{ it.toDTO() },
+                                                            gameStatus = game.gameStatus,
+                                                        )
+                                                    val encodedServerMessage = Cbor.encodeToByteArray(gameStateMessage)
+
+                                                    playerMap.keys.forEach { it.session.send(encodedServerMessage) }
+                                                    kotlinx.coroutines.delay(1000)
+                                                }
+                                            }
+                                        }
+
+                                        else -> {
+                                            val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
+                                                errorMessage = "Current game status: ${game.gameStatus}. " +
+                                                        "Game can be started only from WAITING status.",
+                                            )
+                                            val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
+                                            thisConnection.session.send(encodedServerMessage)
+                                        }
+                                    }
+
+                                }
+
+                                GameStatus.FINISHED -> TODO()
                             }
                         }
 

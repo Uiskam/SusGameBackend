@@ -2,14 +2,18 @@ package edu.agh.susgame.back.models
 
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.dto.rest.model.*
+import edu.agh.susgame.dto.socket.common.GameStatus
+import edu.agh.susgame.back.net.NetGraph
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
+import edu.agh.susgame.dto.rest.model.Player
 
 class Game(
     val name: String,
     val maxNumberOfPlayers: Int,
-    val gamePin: String? = null
+    val gamePin: String? = null,
+    var gameStatus: GameStatus = GameStatus.WAITING
 ) {
     companion object {
         val lastId = AtomicInteger(0)
@@ -17,16 +21,18 @@ class Game(
 
     val id = lastId.getAndIncrement()
 
-    private val playerMap: MutableMap<Connection, String> = ConcurrentHashMap()
+    private val playerMap: MutableMap<Connection, Player> = ConcurrentHashMap()
+
     fun addPlayer(connection: Connection, playerName: String) {
-        if (playerMap.containsValue(playerName)) {
+        if (playerMap.values.any { it.nickname.value == playerName }) {
             throw IllegalArgumentException("Player with name $playerName already exists")
         }
-        playerMap[connection] = playerName
+        playerMap[connection] =
+            Player(PlayerNickname(playerName), PlayerId(playerMap.size), Random.nextLong(0, 0xFFFFFF))
     }
 
     fun removePlayer(playerName: String) {
-        playerMap.entries.removeIf { it.value == playerName }
+        playerMap.entries.removeIf { it.value.nickname.value == playerName }
     }
 
     fun getDataToReturn(): Lobby {
@@ -36,19 +42,11 @@ class Game(
             maxNumOfPlayers = maxNumberOfPlayers,
             // TODO GAME-74 Remove this hardcoded value
             gameTime = 10,
-            playersWaiting = playerMap.values.toList().map { nickname ->
-                Player(
-                    // TODO GAME-74 Players are not properly indexed
-                    id = PlayerId(nickname.hashCode()),
-                    nickname = PlayerNickname(nickname),
-                    // TODO GAME-74 Player color (HEX value) should be constant for each player
-                    colorHex = Random.nextLong(0, 0xFFFFFF),
-                )
-            }
+            playersWaiting = playerMap.values.toList(),
         )
     }
 
-    fun getPlayers(): MutableMap<Connection, String> {
+    fun getPlayers(): MutableMap<Connection, Player> {
         return playerMap
     }
 }

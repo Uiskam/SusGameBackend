@@ -1,6 +1,10 @@
 package edu.agh.susgame.back.net
 
+import edu.agh.susgame.back.net.node.Host
 import edu.agh.susgame.back.net.node.Node
+import edu.agh.susgame.back.net.node.Router
+import edu.agh.susgame.back.net.node.Server
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Represents the structure of the net as an undirected graph
@@ -14,6 +18,16 @@ class NetGraph {
     // Mutable list of edges
     private val edges: HashSet<Edge> = HashSet()
 
+    // List of hosts DTO purposes
+    private val hosts = ArrayList<Host>()
+
+    // List of routers DTO purposes
+    private val routers = ArrayList<Router>()
+
+    // List of servers DTO purposes
+    private val servers = ArrayList<Server>()
+
+
     /**
      * Adds a new node to the graph.
      *
@@ -21,7 +35,18 @@ class NetGraph {
      */
     public fun addNode(node: Node) {
         structure[node] = HashMap()
+
+        when(node) {
+            is Host -> hosts.add(node)
+            is Router -> routers.add(node)
+            is Server -> servers.add(node)
+            else -> {throw IllegalArgumentException("Node type not recognized $node")}
+        }
     }
+
+    public fun getHosts() = hosts
+    public fun getRouters() = routers
+    public fun getServers() = servers
 
     /**
      * Connects two nodes in the graph with an edge.
@@ -100,7 +125,5 @@ class NetGraph {
 
         nodes.forEach { node -> node.updateBuffer() }
     }
-
-
 
 }

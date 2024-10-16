@@ -2,6 +2,7 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.dto.socket.server.HostDTO
 
 class Host(
     index: Int,
@@ -59,5 +60,13 @@ class Host(
      * @return The number of packets sent from the start of simulation.
      */
     public fun getNumPacketsSent(): Int = numPacketsSent
+
+    public fun toDTO(): HostDTO {
+        val nonNullRoute = route ?: emptyList()
+        return HostDTO(
+            id = index,
+            packetPath = nonNullRoute.map { it.index },
+        )
+    }
 
 }

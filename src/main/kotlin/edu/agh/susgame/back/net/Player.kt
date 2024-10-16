@@ -4,4 +4,5 @@ class Player (
     private val index: Int,
     private val name: String
 ) {
+
 }

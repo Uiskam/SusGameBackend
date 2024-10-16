@@ -13,6 +13,10 @@ class GamesRestImpl : GamesRest {
     var gameStorage = GameStorage(
         gameList = listOf(
             Game(
+                name = "Gra do testowania v0.1 engine",
+                maxNumberOfPlayers = 4,
+            ),
+            Game(
                 name = "Gra nr 1",
                 maxNumberOfPlayers = 5,
             ),

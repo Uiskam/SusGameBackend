@@ -31,9 +31,11 @@ class GraphParser {
      *                                  enough players for the Host nodes, or if the JSON data is invalid.
      */
     fun parseFromFile(filePath: String, players: List<Player>): NetGraph {
-        val fileUrl = javaClass.getResource(filePath)
-            ?: throw IllegalArgumentException("File not found at path: $filePath")
-        val jsonString = File(fileUrl.toURI()).readText()
+        // This does not work on linux
+        //val fileUrl = javaClass.getResource(filePath)
+        //    ?: throw IllegalArgumentException("File not found at path: $filePath")
+        //val jsonString = File(fileUrl.toURI()).readText()
+        val jsonString = File(filePath).readText()
         return parseGraph(jsonString, players)
     }
 

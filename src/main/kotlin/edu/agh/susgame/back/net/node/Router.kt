@@ -2,6 +2,7 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.dto.socket.server.RouterDTO
 
 /**
  * Represents the router object. Extends Sending.
@@ -79,5 +80,8 @@ class Router(
         return packets
     }
 
-
+    public fun toDTO(): RouterDTO {
+        //TODO change hardcoded value
+        return RouterDTO(index, bufferSize, spaceLeft, 2137)
+    }
 }
