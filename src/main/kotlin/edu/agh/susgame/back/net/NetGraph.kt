@@ -71,9 +71,14 @@ class NetGraph {
      *
      * @return HashSet of all nodes.
      */
-    public fun getNodes(): HashSet<Node> {
-        return HashSet( structure.keys )
-    }
+    public fun getNodes(): HashSet<Node> = HashSet( structure.keys )
+
+    /**
+     * Retrieves all the edges from the graph.
+     *
+     * @return HashSet of all edges.
+     */
+    public fun getEdges(): HashSet<Edge> = edges
 
     /**
      * Checks if two nodes are neighbors in NetGraph structure.
