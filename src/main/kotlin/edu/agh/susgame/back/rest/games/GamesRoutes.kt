@@ -2,6 +2,7 @@ package edu.agh.susgame.back.rest.games
 
 import Generator
 import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.node.Node
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
@@ -179,6 +180,13 @@ fun Route.gameRouting() {
                                                     kotlinx.coroutines.delay(1000)
                                                 }
                                             }
+                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServersList()[0])
+                                            launch {
+                                                while (game.gameStatus == GameStatus.RUNNING) {
+                                                    kotlinx.coroutines.delay(5000)
+                                                    bfs.run()
+                                                }
+                                            }
                                         }
 
                                         else -> {
@@ -207,6 +215,7 @@ fun Route.gameRouting() {
                                         receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
                                     host?.setRoute(route as List<Node>)
                                 }
+
                                 else -> {
                                     thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))
                                 }
