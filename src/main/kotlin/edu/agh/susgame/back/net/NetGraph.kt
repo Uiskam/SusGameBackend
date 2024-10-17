@@ -18,14 +18,14 @@ class NetGraph {
     // Mutable list of edges
     private val edges: HashSet<Edge> = HashSet()
 
-    // List of hosts DTO purposes
-    private val hosts = ArrayList<Host>()
+    // Map of hosts for DTO purposes
+    private val hosts = HashMap<Int, Host>()
 
-    // List of routers DTO purposes
-    private val routers = ArrayList<Router>()
+    // Map of routers for DTO purposes
+    private val routers = HashMap<Int, Router>()
 
-    // List of servers DTO purposes
-    private val servers = ArrayList<Server>()
+    // Map of servers for DTO purposes
+    private val servers = HashMap<Int, Server>()
 
 
     /**
@@ -36,17 +36,23 @@ class NetGraph {
     public fun addNode(node: Node) {
         structure[node] = HashMap()
 
-        when(node) {
-            is Host -> hosts.add(node)
-            is Router -> routers.add(node)
-            is Server -> servers.add(node)
-            else -> {throw IllegalArgumentException("Node type not recognized $node")}
+        when (node) {
+            is Host -> hosts[node.index] = node
+            is Router -> routers[node.index] = node
+            is Server -> servers[node.index] = node
+            else -> {
+                throw IllegalArgumentException("Node type not recognized $node")
+            }
         }
     }
 
-    public fun getHosts() = hosts
-    public fun getRouters() = routers
-    public fun getServers() = servers
+    public fun getHost(index: Int) = hosts[index]
+    public fun getRouter(index: Int) = routers[index]
+    public fun getServer(index: Int) = servers[index]
+
+    public fun getHostsList() = hosts.values.toList()
+    public fun getRoutersList() = routers.values.toList()
+    public fun getServersList() = servers.values.toList()
 
     /**
      * Connects two nodes in the graph with an edge.
@@ -96,7 +102,7 @@ class NetGraph {
      *
      * @return HashSet of all nodes.
      */
-    public fun getNodes(): HashSet<Node> = HashSet( structure.keys )
+    public fun getNodes(): HashSet<Node> = HashSet(structure.keys)
 
     /**
      * Retrieves all the edges from the graph.

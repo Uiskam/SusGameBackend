@@ -2,6 +2,7 @@ package edu.agh.susgame.back.rest.games
 
 import Generator
 import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.net.node.Node
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
@@ -157,16 +158,18 @@ fun Route.gameRouting() {
                                     when (game.gameStatus) {
                                         GameStatus.WAITING -> {
                                             game.gameStatus = GameStatus.RUNNING
-                                            val netGraph = Generator.getGraph(playerMap.values.toList())
+                                            game.gameGraph = Generator.getGraph(playerMap.values.toList())
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     val gameStateMessage: ServerSocketMessage =
                                                         ServerSocketMessage.GameState(
-                                                            routers = netGraph.getRouters().map { it.toDTO() },
-                                                            servers = netGraph.getServers().map { it.toDTO() },
-                                                            hosts = netGraph.getHosts().map { it.toDTO() },
-                                                            edges = netGraph.getEdges().map { it.toDTO() },
+                                                            routers = game.gameGraph.getRoutersList()
+                                                                .map { it.toDTO() },
+                                                            servers = game.gameGraph.getServersList()
+                                                                .map { it.toDTO() },
+                                                            hosts = game.gameGraph.getHostsList().map { it.toDTO() },
+                                                            edges = game.gameGraph.getEdges().map { it.toDTO() },
                                                             players = playerMap.values.map { it.toDTO() },
                                                             gameStatus = game.gameStatus,
                                                         )
@@ -191,6 +194,22 @@ fun Route.gameRouting() {
                                 }
 
                                 GameStatus.FINISHED -> TODO()
+                            }
+                        }
+
+                        is ClientSocketMessage.HostDTO -> {
+                            when (game.gameStatus) {
+                                //TODO implement support for packets per tick
+                                GameStatus.RUNNING -> {
+                                    val host = game.gameGraph.getHost(receivedMessage.id)
+                                    val allNodes = game.gameGraph.getNodes()
+                                    val route =
+                                        receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
+                                    host?.setRoute(route as List<Node>)
+                                }
+                                else -> {
+                                    thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))
+                                }
                             }
                         }
 

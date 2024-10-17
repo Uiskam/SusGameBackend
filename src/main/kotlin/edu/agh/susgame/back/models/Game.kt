@@ -1,6 +1,7 @@
 package edu.agh.susgame.back.models
 
 import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.common.GameStatus
@@ -11,7 +12,8 @@ class Game(
     val name: String,
     val maxNumberOfPlayers: Int,
     val gamePin: String? = null,
-    var gameStatus: GameStatus = GameStatus.WAITING
+    var gameStatus: GameStatus = GameStatus.WAITING,
+    var gameGraph: NetGraph = NetGraph(),
 ) {
     companion object {
         val lastId = AtomicInteger(0)
