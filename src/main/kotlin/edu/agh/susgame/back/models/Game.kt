@@ -1,13 +1,11 @@
 package edu.agh.susgame.back.models
 
 import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.common.GameStatus
-import edu.agh.susgame.back.net.NetGraph
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.random.Random
-import edu.agh.susgame.dto.rest.model.Player
 
 class Game(
     val name: String,
@@ -24,15 +22,14 @@ class Game(
     private val playerMap: MutableMap<Connection, Player> = ConcurrentHashMap()
 
     fun addPlayer(connection: Connection, playerName: String) {
-        if (playerMap.values.any { it.nickname.value == playerName }) {
+        if (playerMap.values.any { it.name == playerName }) {
             throw IllegalArgumentException("Player with name $playerName already exists")
         }
-        playerMap[connection] =
-            Player(PlayerNickname(playerName), PlayerId(playerMap.size), Random.nextLong(0, 0xFFFFFF))
+        playerMap[connection] = Player(index = playerMap.size, name = playerName)
     }
 
     fun removePlayer(playerName: String) {
-        playerMap.entries.removeIf { it.value.nickname.value == playerName }
+        playerMap.entries.removeIf { it.value.name == playerName }
     }
 
     fun getDataToReturn(): Lobby {
@@ -42,7 +39,7 @@ class Game(
             maxNumOfPlayers = maxNumberOfPlayers,
             // TODO GAME-74 Remove this hardcoded value
             gameTime = 10,
-            playersWaiting = playerMap.values.toList(),
+            playersWaiting = playerMap.values.map { it.toREST() },
         )
     }
 

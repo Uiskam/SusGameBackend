@@ -6,7 +6,7 @@
 package edu.agh.susgame.dto.rest.model
 
 import kotlinx.serialization.Serializable
-import edu.agh.susgame.dto.socket.server.PlayerDTO
+
 
 @Serializable
 data class PlayerId(val value: Int)
@@ -15,17 +15,8 @@ data class PlayerId(val value: Int)
 data class PlayerNickname(val value: String)
 
 @Serializable
-data class Player(
+data class PlayerREST(
     val nickname: PlayerNickname,
     val id: PlayerId,
     val colorHex: Long,
-) {
-    //TODO Widze to że to trzeba zmienić jakkoś jak sa Ci playerzy bo to jest z DTO i tego nie można zmieniać
-    fun toNetPlayer(): edu.agh.susgame.back.net.Player {
-        return edu.agh.susgame.back.net.Player(id.value, nickname.value)
-    }
-
-    fun toDTO(): PlayerDTO {
-        return PlayerDTO(id.value, nickname.value, 0)
-    }
-}
+)

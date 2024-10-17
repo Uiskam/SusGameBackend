@@ -1,14 +1,13 @@
 package parsing_test
 
 import edu.agh.susgame.back.net.*
-import edu.agh.susgame.back.net.node.*
-import edu.agh.susgame.back.parser.GraphParser
+import edu.agh.susgame.back.net.parser.GraphParser
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class NetGraphParsingTest {
-    val parser = GraphParser()
+    private val parser = GraphParser()
 
     @Test
     fun parseGraphTest(){

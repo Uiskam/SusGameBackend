@@ -1,7 +1,7 @@
 package edu.agh.susgame.back.rest.games
 
+import Generator
 import edu.agh.susgame.back.Connection
-import edu.agh.susgame.back.parser.GraphParser
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
@@ -25,7 +25,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
-import java.io.File
 
 val gamesRestImpl = GamesRestImpl()
 
@@ -137,7 +136,7 @@ fun Route.gameRouting() {
                         is ClientSocketMessage.ChatMessage -> {
                             playerMap.forEach {
                                 val connection = it.key
-                                val playerNickname = it.value.nickname.value
+                                val playerNickname = it.value.name
 
                                 if (connection != thisConnection) {
                                     val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
@@ -158,10 +157,7 @@ fun Route.gameRouting() {
                                     when (game.gameStatus) {
                                         GameStatus.WAITING -> {
                                             game.gameStatus = GameStatus.RUNNING
-                                            val netGraph = GraphParser().parseFromFile(
-                                                "src/main/resources/graph_files/4/graph0.json",
-                                                playerMap.values.map { player -> player.toNetPlayer()}
-                                            )
+                                            val netGraph = Generator.getGraph(playerMap.values.toList())
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
@@ -171,7 +167,7 @@ fun Route.gameRouting() {
                                                             servers = netGraph.getServers().map { it.toDTO() },
                                                             hosts = netGraph.getHosts().map { it.toDTO() },
                                                             edges = netGraph.getEdges().map { it.toDTO() },
-                                                            players = playerMap.values.map{ it.toDTO() },
+                                                            players = playerMap.values.map { it.toDTO() },
                                                             gameStatus = game.gameStatus,
                                                         )
                                                     val encodedServerMessage = Cbor.encodeToByteArray(gameStateMessage)
