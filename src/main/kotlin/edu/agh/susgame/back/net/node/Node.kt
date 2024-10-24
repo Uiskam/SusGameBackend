@@ -31,7 +31,7 @@ abstract class Node (
      *
      * @return HashSet of the nodes
      */
-    public fun getNeighbors(): HashSet<Node> {
+    public fun getNeighborsSet(): HashSet<Node> {
         return HashSet( neighbors.keys )
     }
 

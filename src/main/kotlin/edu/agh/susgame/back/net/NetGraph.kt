@@ -28,6 +28,15 @@ class NetGraph {
     private val servers = HashMap<Int, Server>()
 
 
+
+    /**
+     * Resets the packet counters for all edges.
+     * Sets the `transportedPacketsThisTurn` property of each edge to 0.
+     */
+    public fun resetEdges() {
+        edges.forEach { it.transportedPacketsThisTurn = 0 }
+    }
+
     /**
      * Adds a new node to the graph.
      *

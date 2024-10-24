@@ -27,6 +27,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
+import edu.agh.susgame.config.*
 
 val gamesRestImpl = GamesRestImpl()
 
@@ -154,7 +155,14 @@ fun Route.gameRouting() {
 
                         is ClientSocketMessage.GameState -> {
                             when (receivedMessage.gameStatus) {
-                                GameStatus.WAITING -> TODO()
+                                GameStatus.WAITING -> {
+                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
+                                        errorMessage = "Game cannot be set to WAITING by client!",
+                                    )
+                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
+                                    thisConnection.session.send(encodedServerMessage)
+                                }
+
                                 GameStatus.RUNNING -> {
                                     when (game.gameStatus) {
                                         GameStatus.WAITING -> {
@@ -163,6 +171,7 @@ fun Route.gameRouting() {
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
+                                                    println("SENBFIKSADGFBGEAHGIUYESAGESAGHAGKUSA")
                                                     val gameStateMessage: ServerSocketMessage =
                                                         ServerSocketMessage.GameState(
                                                             routers = game.gameGraph.getRoutersList()
@@ -177,13 +186,13 @@ fun Route.gameRouting() {
                                                     val encodedServerMessage = Cbor.encodeToByteArray(gameStateMessage)
 
                                                     playerMap.keys.forEach { it.session.send(encodedServerMessage) }
-                                                    kotlinx.coroutines.delay(1000)
+                                                    kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }
                                             val bfs = BFS(game.gameGraph, game.gameGraph.getServersList()[0])
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
-                                                    kotlinx.coroutines.delay(5000)
+                                                    kotlinx.coroutines.delay(BFS_FREQUENCY)
                                                     bfs.run()
                                                 }
                                             }
@@ -201,7 +210,13 @@ fun Route.gameRouting() {
 
                                 }
 
-                                GameStatus.FINISHED -> TODO()
+                                GameStatus.FINISHED -> {
+                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
+                                        errorMessage = "Game cannot be set to FINISHED by client!",
+                                    )
+                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
+                                    thisConnection.session.send(encodedServerMessage)
+                                }
                             }
                         }
 

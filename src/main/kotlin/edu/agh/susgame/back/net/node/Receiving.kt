@@ -34,7 +34,12 @@ abstract class Receiving (
                 if (packet != null) {
                     pushPacket(packet)
                     bandwidthLeft[pointer]-- // Update the number of packets that can be sent using this edge.
+                    println("Transported packets: ${neighbors[neighborList[pointer]]?.transportedPacketsThisTurn}")
                     noInputCounter = 0 // Try another round over the neighbors looking for new packet
+                    neighbors[neighborList[pointer]]?.transportedPacketsThisTurn = neighbors[neighborList[pointer]]?.transportedPacketsThisTurn!! + 1
+                    println("Transported packets: ${neighbors[neighborList[pointer]]?.transportedPacketsThisTurn}")
+                    println()
+                // Update the number of packets transported using this edge, for DTO purposes
                 }
 
             }
