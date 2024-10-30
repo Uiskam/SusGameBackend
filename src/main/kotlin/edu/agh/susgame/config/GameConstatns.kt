@@ -1,4 +1,5 @@
 package edu.agh.susgame.config
+
 // base engine settings
 const val BFS_FREQUENCY = 1000L
 const val CLIENT_REFRESH_FREQUENCY = 5000L
@@ -13,3 +14,7 @@ const val ROUTER_BASE_UPGRADE_COST = 100
 const val EDGE_UPGRADE_COST_COEFF = 0.2
 const val EDGE_UPGRADE_WEIGHT_COEFF = 0.1
 const val EDGE_BASE_UPGRADE_COST = 100
+
+const val PLAYER_BASE_MONEY = 0
+const val PLAYER_MAX_PACKETS_PER_TICK = 20
+const val PLAYER_BASE_PACKETS_PER_TICK = 5

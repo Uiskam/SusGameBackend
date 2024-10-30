@@ -105,14 +105,13 @@ class Router(
     /**
      * Upgrades the buffer capacity and increases the upgrade cost.
      */
-    fun upgradeBuffer(player: Player): Boolean {
+    fun upgradeBuffer(player: Player) {
         if (player.getCurrentMoney() < upgradeCost) {
-            return false
+            throw IllegalStateException("Player does not have enough money to upgrade the buffer")
         }
         player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
         bufferSize += ceil(bufferSize * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
         upgradeCost += ceil(upgradeCost * ROUTER_UPGRADE_COST_COEFF).toInt()
         spaceLeft += ceil(bufferSize * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
-        return true
     }
 }

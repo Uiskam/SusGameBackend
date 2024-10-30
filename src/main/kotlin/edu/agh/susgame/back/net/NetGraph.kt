@@ -35,6 +35,11 @@ class NetGraph {
         edges.forEach { it.transportedPacketsThisTurn = 0 }
     }
 
+    fun resetPacketsSentByHostsThisTick() {
+        val hosts = getHostsList()
+        hosts.forEach { host -> host.resetPacketsSentThisTick() }
+    }
+
     /**
      * Adds money to each host in the network.
      * Iterates through all hosts and calls the `addMoney` method on each host.

@@ -224,12 +224,30 @@ fun Route.gameRouting() {
                         is ClientSocketMessage.HostDTO -> {
                             when (game.gameStatus) {
                                 //TODO implement support for packets per tick
+
                                 GameStatus.RUNNING -> {
                                     val host = game.gameGraph.getHost(receivedMessage.id)
-                                    val allNodes = game.gameGraph.getNodes()
-                                    val route =
-                                        receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
-                                    host?.setRoute(route as List<Node>)
+                                    if (host == null) {
+                                        thisConnection.session.send(
+                                            Cbor.encodeToByteArray(
+                                                ServerSocketMessage.ServerError("There is no host with id of ${receivedMessage.id}.")
+                                            )
+                                        )
+                                    } else {
+                                        try {
+                                            val allNodes = game.gameGraph.getNodes()
+                                            val route =
+                                                receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
+                                            host.setRoute(route as List<Node>)
+                                            host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
+                                        } catch (e: IllegalArgumentException) {
+                                            thisConnection.session.send(
+                                                Cbor.encodeToByteArray(
+                                                    ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+                                                )
+                                            )
+                                        }
+                                    }
                                 }
 
                                 else -> {
@@ -241,22 +259,33 @@ fun Route.gameRouting() {
                         is ClientSocketMessage.UpgradeDTO -> {
                             when (game.gameStatus) {
                                 GameStatus.RUNNING -> {
-                                    val deviceIdToUpgrade = receivedMessage.deviceId
-                                    val edge = game.gameGraph.getEdges().firstOrNull { it.index == deviceIdToUpgrade }
-                                    val router =
-                                        game.gameGraph.getRoutersList().firstOrNull { it.index == deviceIdToUpgrade }
-                                    if (edge != null) {
-                                        edge.upgradeWeight(thisPlayer)
-                                    } else if (router != null) {
-                                        router.upgradeBuffer(thisPlayer)
-                                    } else {
+                                    try {
+                                        val deviceIdToUpgrade = receivedMessage.deviceId
+                                        val edge =
+                                            game.gameGraph.getEdges().firstOrNull { it.index == deviceIdToUpgrade }
+                                        val router =
+                                            game.gameGraph.getRoutersList()
+                                                .firstOrNull { it.index == deviceIdToUpgrade }
+                                        if (edge != null) {
+                                            edge.upgradeWeight(thisPlayer)
+                                        } else if (router != null) {
+                                            router.upgradeBuffer(thisPlayer)
+                                        } else {
+                                            thisConnection.session.send(
+                                                Cbor.encodeToByteArray(
+                                                    ServerSocketMessage.ServerError("There is no edge or host with id of $deviceIdToUpgrade.")
+                                                )
+                                            )
+                                        }
+                                    } catch (e: IllegalStateException) {
                                         thisConnection.session.send(
                                             Cbor.encodeToByteArray(
-                                                ServerSocketMessage.ServerError("There is no edge or host with id of $deviceIdToUpgrade.")
+                                                ServerSocketMessage.ServerError(e.message ?: "Unknown error")
                                             )
                                         )
                                     }
                                 }
+
 
                                 else -> {
                                     thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))

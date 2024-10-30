@@ -6,7 +6,7 @@ import edu.agh.susgame.config.*
 import org.junit.Test
 import kotlin.math.ceil
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertFailsWith
 
 class UpgradeTest {
     private val parser = GraphParser()
@@ -22,12 +22,9 @@ class UpgradeTest {
         val edge = graph.getEdges().first()
         player0.setCurrentMoney(EDGE_BASE_UPGRADE_COST)
         val expectedWeightAfterUpgrade = edge.getWeight() + ceil(edge.getWeight() * EDGE_UPGRADE_WEIGHT_COEFF).toInt()
-        var result = edge.upgradeWeight(player0)
-        // check if upgrade success when player has enough money
-        assertTrue { result }
-        result = edge.upgradeWeight(player0)
+        edge.upgradeWeight(player0)
         // check if upgrade fail when player has not enough money
-        assertTrue { !result }
+        assertFailsWith<IllegalStateException> { edge.upgradeWeight(player0) }
         // check the decrease of the money after upgrade
         assertEquals(0, player0.getCurrentMoney())
         // check the increase of the weight after upgrade
@@ -39,12 +36,11 @@ class UpgradeTest {
         val router = graph.getRoutersList().first()
         player0.setCurrentMoney(ROUTER_BASE_UPGRADE_COST)
         val expectedWeightAfterUpgradeRouter = router.getBufferSize() + ceil(router.getBufferSize() * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
-        result = router.upgradeBuffer(player0)
-        // check if upgrade success when player has enough money
-        assertTrue { result }
-        result = router.upgradeBuffer(player0)
+        router.upgradeBuffer(player0)
         // check if upgrade fail when player has not enough money
-        assertTrue { !result }
+        assertFailsWith<IllegalStateException> { router.upgradeBuffer(player0) }
+
+
         // check the decrease of the money after upgrade
         assertEquals(0, player0.getCurrentMoney())
         // check the increase of capacity after upgrade

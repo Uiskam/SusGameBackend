@@ -2,17 +2,35 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.config.PLAYER_BASE_PACKETS_PER_TICK
+import edu.agh.susgame.config.PLAYER_MAX_PACKETS_PER_TICK
 import edu.agh.susgame.dto.socket.server.HostDTO
 
 class Host(
     index: Int,
-    private val player: Player
+    private val player: Player,
+    private var maxPacketsPerTick : Int = PLAYER_BASE_PACKETS_PER_TICK,
+    private var packetsSentThisTick: Int = 0
 ) : Node(index) {
 
     private var route: List<Node>? = null
     private var firstNode: Node? = null // Node that the player is sending packets to
 
     private var numPacketsSent: Int = 0 // How many packets has the host already sent.
+
+    fun getMaxPacketsPerTick(): Int = maxPacketsPerTick
+    fun setMaxPacketsPerTick(packetsPerTick: Int) {
+        if (packetsPerTick < 0) {
+            throw IllegalArgumentException("Packets per tick cannot be negative")
+        } else if (packetsPerTick > PLAYER_MAX_PACKETS_PER_TICK) {
+            throw IllegalArgumentException("Packets per tick cannot be greater than $PLAYER_MAX_PACKETS_PER_TICK")
+        }
+        this.maxPacketsPerTick = packetsPerTick
+    }
+
+    fun resetPacketsSentThisTick() {
+        packetsSentThisTick = 0
+    }
 
     /**
      * Stets a new route for generated packets.
@@ -55,7 +73,8 @@ class Host(
      * @return A new packet or null if the node is not first in the route or the route is empty.
      */
     override fun getPacket(node: Node): Packet? {
-        return if (firstNode == node) {
+        return if (firstNode == node && maxPacketsPerTick > packetsSentThisTick) {
+            packetsSentThisTick++
             Packet(player, route!!).also { numPacketsSent++ }
         } else {
             null
