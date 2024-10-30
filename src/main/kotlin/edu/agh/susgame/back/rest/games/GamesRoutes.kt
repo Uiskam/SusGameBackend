@@ -171,7 +171,6 @@ fun Route.gameRouting() {
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
-                                                    println("SENBFIKSADGFBGEAHGIUYESAGESAGHAGKUSA")
                                                     val gameStateMessage: ServerSocketMessage =
                                                         ServerSocketMessage.GameState(
                                                             routers = game.gameGraph.getRoutersList()

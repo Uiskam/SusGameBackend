@@ -18,7 +18,6 @@ class Edge(
     fun getWeight() = weight
 
     //TODO Change the hardcoded value
-    //TODO Implement in NetGraph to log amount of packets transported each turn
     fun toDTO() = EdgeDTO(index, 2137, transportedPacketsThisTurn)
 
 

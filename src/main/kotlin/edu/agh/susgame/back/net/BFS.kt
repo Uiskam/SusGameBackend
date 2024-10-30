@@ -19,7 +19,6 @@ class BFS (
     private val nodes: HashSet<Node> = net.getNodes()
 
     public fun run() {
-        println("Running BFS")
         // Reset edge packet counters
         net.resetEdges()
         // Visited
