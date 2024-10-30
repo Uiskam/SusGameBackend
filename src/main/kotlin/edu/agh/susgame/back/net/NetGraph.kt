@@ -4,12 +4,11 @@ import edu.agh.susgame.back.net.node.Host
 import edu.agh.susgame.back.net.node.Node
 import edu.agh.susgame.back.net.node.Router
 import edu.agh.susgame.back.net.node.Server
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Represents the structure of the net as an undirected graph
  */
-
+// IMPORTANT It is important for UpgradeDTO for each pair of node and edge to different index
 class NetGraph {
 
     // Structure of the graph
@@ -28,13 +27,22 @@ class NetGraph {
     private val servers = HashMap<Int, Server>()
 
 
-
     /**
      * Resets the packet counters for all edges.
      * Sets the `transportedPacketsThisTurn` property of each edge to 0.
      */
-    public fun resetEdges() {
+    fun resetEdges() {
         edges.forEach { it.transportedPacketsThisTurn = 0 }
+    }
+
+    /**
+     * Adds money to each host in the network.
+     * Iterates through all hosts and calls the `addMoney` method on each host.
+     */
+    fun addMoney() {
+        hosts.forEach { (_, host) ->
+            host.addMoney()
+        }
     }
 
     /**
@@ -42,7 +50,7 @@ class NetGraph {
      *
      * @param node The node to add to the graph.
      */
-    public fun addNode(node: Node) {
+    fun addNode(node: Node) {
         structure[node] = HashMap()
 
         when (node) {
@@ -55,13 +63,13 @@ class NetGraph {
         }
     }
 
-    public fun getHost(index: Int) = hosts[index]
-    public fun getRouter(index: Int) = routers[index]
-    public fun getServer(index: Int) = servers[index]
+    fun getHost(index: Int) = hosts[index]
+    fun getRouter(index: Int) = routers[index]
+    fun getServer(index: Int) = servers[index]
 
-    public fun getHostsList() = hosts.values.toList()
-    public fun getRoutersList() = routers.values.toList()
-    public fun getServersList() = servers.values.toList()
+    fun getHostsList() = hosts.values.toList()
+    fun getRoutersList() = routers.values.toList()
+    fun getServersList() = servers.values.toList()
 
     /**
      * Connects two nodes in the graph with an edge.
@@ -72,7 +80,7 @@ class NetGraph {
      * @param endNode The ending node of the edge.
      * @param edge The edge to connect the nodes with.
      */
-    public fun addEdge(startNode: Node, endNode: Node, edge: Edge) {
+    fun addEdge(startNode: Node, endNode: Node, edge: Edge) {
         // Connect the nodes
         structure[startNode]!![endNode] = edge
         structure[endNode]!![startNode] = edge
@@ -91,7 +99,7 @@ class NetGraph {
      * @param node The node to retrieve neighbours of.
      * @return The HashSet of the neighbours. Null if node does not exist.
      */
-    public fun getNeighbours(node: Node): HashSet<Node>? {
+    fun getNeighbours(node: Node): HashSet<Node>? {
         return structure[node]?.keys?.let { HashSet(it) }
     }
 
@@ -102,7 +110,7 @@ class NetGraph {
      * @param endNode Ending node of the edge.
      * @return The edge between nodes. Null if edge does not exist.
      */
-    public fun getEdge(startNode: Node, endNode: Node): Edge? {
+    fun getEdge(startNode: Node, endNode: Node): Edge? {
         return structure[startNode]?.get(endNode)
     }
 
@@ -111,14 +119,14 @@ class NetGraph {
      *
      * @return HashSet of all nodes.
      */
-    public fun getNodes(): HashSet<Node> = HashSet(structure.keys)
+    fun getNodes(): HashSet<Node> = HashSet(structure.keys)
 
     /**
      * Retrieves all the edges from the graph.
      *
      * @return HashSet of all edges.
      */
-    public fun getEdges(): HashSet<Edge> = edges
+    fun getEdges(): HashSet<Edge> = edges
 
     /**
      * Checks if two nodes are neighbors in NetGraph structure.
@@ -127,7 +135,7 @@ class NetGraph {
      * @param node2 Second node.
      * @return Boolean value if the second node is in the neighbor list of the first node.
      */
-    public fun areNeighbors(node1: Node, node2: Node): Boolean {
+    fun areNeighbors(node1: Node, node2: Node): Boolean {
         val neighbors = getNeighbours(node1)
         return neighbors?.contains(node2) ?: false
     }
@@ -135,7 +143,7 @@ class NetGraph {
     /**
      * Updates the buffers of all routers.
      */
-    public fun updateBuffers() {
+    fun updateBuffers() {
         val nodes = getNodes()
 
         nodes.forEach { node -> node.updateBuffer() }

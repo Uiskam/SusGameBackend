@@ -7,12 +7,12 @@ import edu.agh.susgame.dto.socket.server.HostDTO
 class Host(
     index: Int,
     private val player: Player
-): Node(index) {
+) : Node(index) {
 
     private var route: List<Node>? = null
     private var firstNode: Node? = null // Node that the player is sending packets to
 
-    private var numPacketsSent: Int = 0; // How many packets has the host already sent.
+    private var numPacketsSent: Int = 0 // How many packets has the host already sent.
 
     /**
      * Stets a new route for generated packets.
@@ -20,7 +20,7 @@ class Host(
      *
      * @param nodeList List of subsequent nodes starting from the first router after the player and ending with the server object.
      */
-    public fun setRoute(nodeList: List<Node>) {
+    fun setRoute(nodeList: List<Node>) {
         if (nodeList.isNotEmpty()) {
             firstNode = nodeList[0]
             route = nodeList.subList(1, nodeList.size)
@@ -28,6 +28,14 @@ class Host(
             firstNode = null
             route = emptyList()
         }
+    }
+
+    /**
+     * Adds money to the player associated with this host.
+     * Increments the player's current money by a predefined amount.
+     */
+    fun addMoney() {
+        player.addMoney()
     }
 
     /**
@@ -59,9 +67,9 @@ class Host(
      *
      * @return The number of packets sent from the start of simulation.
      */
-    public fun getNumPacketsSent(): Int = numPacketsSent
+    fun getNumPacketsSent(): Int = numPacketsSent
 
-    public fun toDTO(): HostDTO {
+    fun toDTO(): HostDTO {
         val nonNullRoute = route ?: emptyList()
         return HostDTO(
             id = index,

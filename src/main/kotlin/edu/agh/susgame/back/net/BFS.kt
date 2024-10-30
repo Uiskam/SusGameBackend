@@ -18,7 +18,10 @@ class BFS (
     // HashSet of all nodes
     private val nodes: HashSet<Node> = net.getNodes()
 
-    public fun run() {
+    fun run() {
+        // add the money for all players
+        net.addMoney()
+
         // Reset edge packet counters
         net.resetEdges()
         // Visited

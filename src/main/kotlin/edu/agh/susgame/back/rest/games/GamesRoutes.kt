@@ -1,8 +1,9 @@
 package edu.agh.susgame.back.rest.games
 
-import Generator
+import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.Connection
 import edu.agh.susgame.back.net.BFS
+import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.net.node.Node
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
@@ -129,7 +130,8 @@ fun Route.gameRouting() {
             }
 
             val thisConnection = Connection(this)
-            game.addPlayer(thisConnection, playerName)
+            val thisPlayer = Player(index = game.getPlayers().size, name = playerName)
+            game.addPlayer(thisConnection, newPlayer = thisPlayer)
             try {
                 for (frame in incoming) {
                     val playerMap = game.getPlayers()
@@ -228,6 +230,32 @@ fun Route.gameRouting() {
                                     val route =
                                         receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
                                     host?.setRoute(route as List<Node>)
+                                }
+
+                                else -> {
+                                    thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))
+                                }
+                            }
+                        }
+
+                        is ClientSocketMessage.UpgradeDTO -> {
+                            when (game.gameStatus) {
+                                GameStatus.RUNNING -> {
+                                    val deviceIdToUpgrade = receivedMessage.deviceId
+                                    val edge = game.gameGraph.getEdges().firstOrNull { it.index == deviceIdToUpgrade }
+                                    val router =
+                                        game.gameGraph.getRoutersList().firstOrNull { it.index == deviceIdToUpgrade }
+                                    if (edge != null) {
+                                        edge.upgradeWeight(thisPlayer)
+                                    } else if (router != null) {
+                                        router.upgradeBuffer(thisPlayer)
+                                    } else {
+                                        thisConnection.session.send(
+                                            Cbor.encodeToByteArray(
+                                                ServerSocketMessage.ServerError("There is no edge or host with id of $deviceIdToUpgrade.")
+                                            )
+                                        )
+                                    }
                                 }
 
                                 else -> {

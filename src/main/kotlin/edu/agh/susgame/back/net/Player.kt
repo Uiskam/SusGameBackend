@@ -1,5 +1,6 @@
 package edu.agh.susgame.back.net
 
+import edu.agh.susgame.config.MONEY_GAIN_PER_ITERATION
 import edu.agh.susgame.dto.socket.server.PlayerDTO
 import edu.agh.susgame.dto.rest.model.*
 import kotlin.random.Random
@@ -21,6 +22,22 @@ class Player(
 
     fun toDTO(): PlayerDTO {
         return PlayerDTO(id = index, playerName = name, currentMoney = currentMoney)
+    }
+
+    fun getCurrentMoney(): Int {
+        return currentMoney
+    }
+
+    fun setCurrentMoney(money: Int) {
+        currentMoney = money
+    }
+
+    /**
+     * Adds money to the player's current balance.
+     * Increments the player's current money by a predefined amount defined in the configuration.
+     */
+    fun addMoney() {
+        currentMoney += MONEY_GAIN_PER_ITERATION
     }
 
 }

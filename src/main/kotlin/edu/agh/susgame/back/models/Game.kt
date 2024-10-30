@@ -23,11 +23,11 @@ class Game(
 
     private val playerMap: MutableMap<Connection, Player> = ConcurrentHashMap()
 
-    fun addPlayer(connection: Connection, playerName: String) {
-        if (playerMap.values.any { it.name == playerName }) {
-            throw IllegalArgumentException("Player with name $playerName already exists")
+    fun addPlayer(connection: Connection, newPlayer: Player) {
+        if (playerMap.values.any { it.name == newPlayer.name }) {
+            throw IllegalArgumentException("Player with name $newPlayer.name already exists")
         }
-        playerMap[connection] = Player(index = playerMap.size, name = playerName)
+        playerMap[connection] = Player(index = playerMap.size, name = newPlayer.name)
     }
 
     fun removePlayer(playerName: String) {

@@ -1,5 +1,5 @@
-import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.net.NetGraph
+package edu.agh.susgame.back.net
+
 import edu.agh.susgame.back.net.parser.GraphParser
 import java.io.File
 import kotlin.random.Random
