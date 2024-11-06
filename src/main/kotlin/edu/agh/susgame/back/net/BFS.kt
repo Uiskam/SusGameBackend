@@ -19,9 +19,6 @@ class BFS (
     private val nodes: HashSet<Node> = net.getNodes()
 
     fun run() {
-        // add the money for all players
-        net.addMoney()
-
         // Reset edge packet counters
         net.resetEdges()
 

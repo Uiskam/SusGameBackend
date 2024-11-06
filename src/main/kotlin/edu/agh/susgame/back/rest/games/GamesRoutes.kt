@@ -194,6 +194,7 @@ fun Route.gameRouting() {
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     kotlinx.coroutines.delay(BFS_FREQUENCY)
+                                                    game.addMoneyForAllPlayers()
                                                     bfs.run()
                                                 }
                                             }

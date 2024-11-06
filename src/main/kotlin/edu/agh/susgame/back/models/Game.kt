@@ -48,6 +48,10 @@ class Game(
     fun getPlayers(): MutableMap<Connection, Player> {
         return playerMap
     }
+
+    fun addMoneyForAllPlayers() {
+        playerMap.values.forEach { it.addMoney() }
+    }
 }
 
 class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {

@@ -3,9 +3,7 @@ package edu.agh.susgame.back.net.node
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.config.ROUTER_BASE_UPGRADE_COST
-import edu.agh.susgame.config.ROUTER_UPGRADE_CAPACITY_COEFF
-import edu.agh.susgame.config.ROUTER_UPGRADE_COST_COEFF
+import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.socket.server.RouterDTO
 import kotlin.math.ceil
 
@@ -27,7 +25,7 @@ class Router(
     private val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
 
     // cost of the next buffer capacity upgrade
-    private var upgradeCost: Int = ROUTER_BASE_UPGRADE_COST
+    private var upgradeCost: Int = ROUTER_DEFAULT_UPGRADE_COST
 
     init {
         spaceLeft = bufferSize
@@ -110,8 +108,9 @@ class Router(
             throw IllegalStateException("Player does not have enough money to upgrade the buffer")
         }
         player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
-        bufferSize += ceil(bufferSize * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
-        upgradeCost += ceil(upgradeCost * ROUTER_UPGRADE_COST_COEFF).toInt()
-        spaceLeft += ceil(bufferSize * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
+        val nextBufferSize = nextRouterBufferSize(bufferSize)
+        spaceLeft += nextBufferSize - bufferSize
+        bufferSize = nextBufferSize
+        upgradeCost = nextRouterUpgradeCost(upgradeCost)
     }
 }

@@ -32,7 +32,7 @@ class NetGraph {
      * Sets the `transportedPacketsThisTurn` property of each edge to 0.
      */
     fun resetEdges() {
-        edges.forEach { it.transportedPacketsThisTurn = 0 }
+        edges.forEach { it.transportedPacketsThisTick = 0 }
     }
 
     fun resetPacketsSentByHostsThisTick() {
@@ -40,15 +40,6 @@ class NetGraph {
         hosts.forEach { host -> host.resetPacketsSentThisTick() }
     }
 
-    /**
-     * Adds money to each host in the network.
-     * Iterates through all hosts and calls the `addMoney` method on each host.
-     */
-    fun addMoney() {
-        hosts.forEach { (_, host) ->
-            host.addMoney()
-        }
-    }
 
     /**
      * Adds a new node to the graph.

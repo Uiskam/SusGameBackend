@@ -14,13 +14,13 @@ import kotlin.math.ceil
 class Edge(
     val index: Int,
     private var weight: Int,
-    var transportedPacketsThisTurn: Int = 0,
-    private var upgradeCost: Int = EDGE_BASE_UPGRADE_COST
+    var transportedPacketsThisTick: Int = 0,
+    private var upgradeCost: Int = EDGE_DEFAULT_UPGRADE_COST
 ) {
 
     fun getWeight() = weight
 
-    fun toDTO() = EdgeDTO(index, upgradeCost, transportedPacketsThisTurn)
+    fun toDTO() = EdgeDTO(index, upgradeCost, transportedPacketsThisTick)
 
     fun getUpgradeCost() = upgradeCost
 
@@ -33,8 +33,8 @@ class Edge(
             throw IllegalStateException("Player does not have enough money to upgrade the edge")
         }
         player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
-        weight += (ceil(EDGE_UPGRADE_WEIGHT_COEFF * weight)).toInt()
-        upgradeCost += (ceil(EDGE_UPGRADE_COST_COEFF * upgradeCost)).toInt()
+        weight = nextEdgeWeight(weight)
+        upgradeCost = nextEdgeUpgradeCost(upgradeCost)
     }
 }
 

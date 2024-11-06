@@ -20,7 +20,7 @@ class UpgradeTest {
 
 
         val edge = graph.getEdges().first()
-        player0.setCurrentMoney(EDGE_BASE_UPGRADE_COST)
+        player0.setCurrentMoney(EDGE_DEFAULT_UPGRADE_COST)
         val expectedWeightAfterUpgrade = edge.getWeight() + ceil(edge.getWeight() * EDGE_UPGRADE_WEIGHT_COEFF).toInt()
         edge.upgradeWeight(player0)
         // check if upgrade fail when player has not enough money
@@ -30,12 +30,12 @@ class UpgradeTest {
         // check the increase of the weight after upgrade
         assertEquals(expectedWeightAfterUpgrade ,edge.getWeight())
         // check the increase of the upgrade cost
-        assertEquals(EDGE_BASE_UPGRADE_COST + ceil(EDGE_BASE_UPGRADE_COST * EDGE_UPGRADE_COST_COEFF).toInt(),
+        assertEquals(EDGE_DEFAULT_UPGRADE_COST + ceil(EDGE_DEFAULT_UPGRADE_COST * EDGE_UPGRADE_COST_COEFF).toInt(),
             edge.getUpgradeCost())
 
         val router = graph.getRoutersList().first()
-        player0.setCurrentMoney(ROUTER_BASE_UPGRADE_COST)
-        val expectedWeightAfterUpgradeRouter = router.getBufferSize() + ceil(router.getBufferSize() * ROUTER_UPGRADE_CAPACITY_COEFF).toInt()
+        player0.setCurrentMoney(ROUTER_DEFAULT_UPGRADE_COST)
+        val expectedWeightAfterUpgradeRouter = router.getBufferSize() + ceil(router.getBufferSize() * ROUTER_UPGRADE_BUFFER_SIZE_COEFF).toInt()
         router.upgradeBuffer(player0)
         // check if upgrade fail when player has not enough money
         assertFailsWith<IllegalStateException> { router.upgradeBuffer(player0) }
@@ -46,7 +46,7 @@ class UpgradeTest {
         // check the increase of capacity after upgrade
         assertEquals(expectedWeightAfterUpgradeRouter ,router.getBufferSize())
         // check the increase of the upgrade cost
-        assertEquals(ROUTER_BASE_UPGRADE_COST + ceil(ROUTER_BASE_UPGRADE_COST * ROUTER_UPGRADE_COST_COEFF).toInt(),
+        assertEquals(ROUTER_DEFAULT_UPGRADE_COST + ceil(ROUTER_DEFAULT_UPGRADE_COST * ROUTER_UPGRADE_COST_COEFF).toInt(),
             router.getUpgradeCost())
 
 

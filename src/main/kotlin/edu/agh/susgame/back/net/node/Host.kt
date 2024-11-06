@@ -2,14 +2,14 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.config.PLAYER_BASE_PACKETS_PER_TICK
+import edu.agh.susgame.config.PLAYER_DEFAULT_PACKETS_PER_TICK
 import edu.agh.susgame.config.PLAYER_MAX_PACKETS_PER_TICK
 import edu.agh.susgame.dto.socket.server.HostDTO
 
 class Host(
     index: Int,
     private val player: Player,
-    private var maxPacketsPerTick : Int = PLAYER_BASE_PACKETS_PER_TICK,
+    private var maxPacketsPerTick: Int = PLAYER_DEFAULT_PACKETS_PER_TICK,
     private var packetsSentThisTick: Int = 0
 ) : Node(index) {
 
@@ -48,13 +48,6 @@ class Host(
         }
     }
 
-    /**
-     * Adds money to the player associated with this host.
-     * Increments the player's current money by a predefined amount.
-     */
-    fun addMoney() {
-        player.addMoney()
-    }
 
     /**
      * Host does not collect the packets - does nothing.
