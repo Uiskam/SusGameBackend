@@ -1,6 +1,6 @@
 package edu.agh.susgame.back.rest.games
 
-import edu.agh.susgame.back.GamesWebSocketConnection
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.net.Player
@@ -166,26 +166,16 @@ fun Route.gameRouting() {
                                     when (game.gameStatus) {
                                         GameStatus.WAITING -> {
                                             game.gameStatus = GameStatus.RUNNING
-                                            game.gameGraph = Generator.getGraph(playerMap.values.toList())
+                                            game.gameGraph = Generator.getGraph(playerMap.toMap().values.toList())
+
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
-                                                    val gameStateMessage: ServerSocketMessage =
-                                                        ServerSocketMessage.GameState(
-                                                            routers = game.gameGraph.getRoutersList()
-                                                                .map { it.toDTO() },
-                                                            servers = game.gameGraph.getServersList()
-                                                                .map { it.toDTO() },
-                                                            hosts = game.gameGraph.getHostsList().map { it.toDTO() },
-                                                            edges = game.gameGraph.getEdges().map { it.toDTO() },
-                                                            players = playerMap.values.map { it.toDTO() },
-                                                            gameStatus = game.gameStatus,
+                                                    playerMap.toMap().keys.forEach { connection ->
+                                                        connection.sendServerSocketMessage(
+                                                            ServerSocketMessageParser.gameToGameState(game)
                                                         )
-
-                                                    playerMap.keys.toSet().forEach { connection ->
-                                                        connection.sendServerSocketMessage(gameStateMessage)
                                                     }
-
                                                     kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }

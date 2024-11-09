@@ -1,6 +1,6 @@
 package edu.agh.susgame.back.models
 
-import edu.agh.susgame.back.GamesWebSocketConnection
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.dto.rest.model.*
