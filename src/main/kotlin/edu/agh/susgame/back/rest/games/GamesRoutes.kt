@@ -1,11 +1,12 @@
 package edu.agh.susgame.back.rest.games
 
-import edu.agh.susgame.back.net.Generator
-import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.GamesWebSocketConnection
 import edu.agh.susgame.back.net.BFS
+import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.net.node.Node
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
+import edu.agh.susgame.config.BFS_FREQUENCY
+import edu.agh.susgame.config.CLIENT_REFRESH_FREQUENCY
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
 import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
@@ -27,8 +28,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
-import edu.agh.susgame.config.*
 
 val gamesRestImpl = GamesRestImpl()
 
@@ -129,7 +128,7 @@ fun Route.gameRouting() {
                 return@webSocket
             }
 
-            val thisConnection = Connection(this)
+            val thisConnection = GamesWebSocketConnection(this)
             val thisPlayer = Player(index = game.getPlayers().size, name = playerName)
             game.addPlayer(thisConnection, newPlayer = thisPlayer)
             try {
@@ -139,31 +138,29 @@ fun Route.gameRouting() {
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         is ClientSocketMessage.ChatMessage -> {
-                            playerMap.forEach {
+                            playerMap.toMap().forEach {
                                 val connection = it.key
-                                val playerNickname = it.value.name
+                                val playerNickname = it.value
 
                                 if (connection != thisConnection) {
-                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ChatMessage(
-                                        authorNickname = playerNickname,
-                                        message = receivedMessage.message,
+                                    connection.sendServerSocketMessage(
+                                        ServerSocketMessage.ChatMessage(
+                                            authorNickname = playerNickname.name,
+                                            message = receivedMessage.message,
+                                        )
                                     )
-
-                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
-                                    connection.session.send(encodedServerMessage)
                                 }
                             }
                         }
 
                         is ClientSocketMessage.GameState -> {
                             when (receivedMessage.gameStatus) {
-                                GameStatus.WAITING -> {
-                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
-                                        errorMessage = "Game cannot be set to WAITING by client!",
+                                GameStatus.WAITING ->
+                                    thisConnection.sendServerSocketMessage(
+                                        ServerSocketMessage.ServerError(
+                                            errorMessage = "Game cannot be set to WAITING by client!",
+                                        )
                                     )
-                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
-                                    thisConnection.session.send(encodedServerMessage)
-                                }
 
                                 GameStatus.RUNNING -> {
                                     when (game.gameStatus) {
@@ -184,9 +181,11 @@ fun Route.gameRouting() {
                                                             players = playerMap.values.map { it.toDTO() },
                                                             gameStatus = game.gameStatus,
                                                         )
-                                                    val encodedServerMessage = Cbor.encodeToByteArray(gameStateMessage)
 
-                                                    playerMap.keys.forEach { it.session.send(encodedServerMessage) }
+                                                    playerMap.keys.toSet().forEach { connection ->
+                                                        connection.sendServerSocketMessage(gameStateMessage)
+                                                    }
+
                                                     kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }
@@ -200,103 +199,88 @@ fun Route.gameRouting() {
                                             }
                                         }
 
-                                        else -> {
-                                            val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
-                                                errorMessage = "Current game status: ${game.gameStatus}. " +
-                                                        "Game can be started only from WAITING status.",
+                                        else -> thisConnection.sendServerSocketMessage(
+                                            ServerSocketMessage.ServerError(
+                                                errorMessage = "Game cannot be set to FINISHED by client!",
                                             )
-                                            val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
-                                            thisConnection.session.send(encodedServerMessage)
-                                        }
+                                        )
                                     }
-
                                 }
 
-                                GameStatus.FINISHED -> {
-                                    val serverMessage: ServerSocketMessage = ServerSocketMessage.ServerError(
-                                        errorMessage = "Game cannot be set to FINISHED by client!",
+                                GameStatus.FINISHED ->
+                                    thisConnection.sendServerSocketMessage(
+                                        ServerSocketMessage.ServerError(
+                                            errorMessage = "Game cannot be set to FINISHED by client!",
+                                        )
                                     )
-                                    val encodedServerMessage = Cbor.encodeToByteArray(serverMessage)
-                                    thisConnection.session.send(encodedServerMessage)
-                                }
                             }
                         }
 
                         is ClientSocketMessage.HostDTO -> {
                             when (game.gameStatus) {
-                                //TODO implement support for packets per tick
 
-                                GameStatus.RUNNING -> {
-                                    val host = game.gameGraph.getHost(receivedMessage.id)
-                                    if (host == null) {
-                                        thisConnection.session.send(
-                                            Cbor.encodeToByteArray(
-                                                ServerSocketMessage.ServerError("There is no host with id of ${receivedMessage.id}.")
-                                            )
+                                //TODO implement support for packets per tick
+                                GameStatus.RUNNING -> when (val host = game.gameGraph.getHost(receivedMessage.id)) {
+                                    null -> thisConnection.sendServerSocketMessage(
+                                        ServerSocketMessage.ServerError(
+                                            "There is no host with id of ${receivedMessage.id}"
                                         )
-                                    } else {
-                                        try {
-                                            val allNodes = game.gameGraph.getNodes()
-                                            val route =
-                                                receivedMessage.packetPath.map { index -> allNodes.firstOrNull { it.index == index } }
-                                            host.setRoute(route as List<Node>)
-                                            host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
-                                        } catch (e: IllegalArgumentException) {
-                                            thisConnection.session.send(
-                                                Cbor.encodeToByteArray(
-                                                    ServerSocketMessage.ServerError(e.message ?: "Unknown error")
-                                                )
-                                            )
+                                    )
+
+                                    else -> try {
+                                        val route = receivedMessage.packetPath.flatMap { nodeId ->
+                                            when (val node = game.gameGraph.getNodeById(nodeId)) {
+                                                null -> emptyList()
+                                                else -> listOf(node)
+                                            }
                                         }
+                                        host.setRoute(route)
+
+                                        host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
+                                    } catch (e: IllegalArgumentException) {
+                                        thisConnection.sendServerSocketMessage(
+                                            ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+                                        )
                                     }
                                 }
 
-                                else -> {
-                                    thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))
-                                }
+                                else -> thisConnection.sendServerSocketMessage(
+                                    ServerSocketMessage.ServerError("Game is not in a running state")
+                                )
                             }
                         }
 
                         is ClientSocketMessage.UpgradeDTO -> {
                             when (game.gameStatus) {
-                                GameStatus.RUNNING -> {
-                                    try {
-                                        val deviceIdToUpgrade = receivedMessage.deviceId
-                                        val edge =
-                                            game.gameGraph.getEdges().firstOrNull { it.index == deviceIdToUpgrade }
-                                        val router =
-                                            game.gameGraph.getRoutersList()
-                                                .firstOrNull { it.index == deviceIdToUpgrade }
-                                        if (edge != null) {
-                                            edge.upgradeWeight(thisPlayer)
-                                        } else if (router != null) {
-                                            router.upgradeBuffer(thisPlayer)
-                                        } else {
-                                            thisConnection.session.send(
-                                                Cbor.encodeToByteArray(
-                                                    ServerSocketMessage.ServerError("There is no edge or host with id of $deviceIdToUpgrade.")
-                                                )
-                                            )
-                                        }
-                                    } catch (e: IllegalStateException) {
-                                        thisConnection.session.send(
-                                            Cbor.encodeToByteArray(
-                                                ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+                                GameStatus.RUNNING -> try {
+                                    val deviceIdToUpgrade = receivedMessage.deviceId
+
+                                    val edge = game.gameGraph.getEdgeById(deviceIdToUpgrade)
+                                    val router = game.gameGraph.getRouter(deviceIdToUpgrade)
+
+                                    if (edge != null) {
+                                        edge.upgradeWeight(thisPlayer)
+                                    } else if (router != null) {
+                                        router.upgradeBuffer(thisPlayer)
+                                    } else {
+                                        thisConnection.sendServerSocketMessage(
+                                            ServerSocketMessage.ServerError(
+                                                "There is neither an edge not a host with id of $deviceIdToUpgrade."
                                             )
                                         )
                                     }
+                                } catch (e: IllegalStateException) {
+                                    thisConnection.sendServerSocketMessage(
+                                        ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+                                    )
                                 }
 
-
-                                else -> {
-                                    thisConnection.session.send(Cbor.encodeToByteArray(ServerSocketMessage.ServerError("Game is not in running state.")))
-                                }
+                                else -> thisConnection.sendServerSocketMessage(
+                                    ServerSocketMessage.ServerError("Game is not in running state.")
+                                )
                             }
                         }
-
-                        else -> {}
                     }
-
                 }
             } catch (e: Exception) {
                 println(e.localizedMessage)
