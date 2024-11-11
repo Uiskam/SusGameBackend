@@ -1,8 +1,10 @@
 package edu.agh.susgame.back.models
 
+import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.common.GameStatus
 import java.util.concurrent.ConcurrentHashMap
@@ -14,7 +16,11 @@ class Game(
     val gamePin: String? = null,
     var gameStatus: GameStatus = GameStatus.WAITING,
     var gameGraph: NetGraph = NetGraph(),
-) {
+    private val gameLength: Int = GAME_TIME_DEFAULT,
+    private val gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL,
+    private var startTime: Long = -1,
+
+    ) {
     companion object {
         val lastId = AtomicInteger(0)
     }
@@ -51,6 +57,31 @@ class Game(
 
     fun addMoneyForAllPlayers() {
         playerMap.values.forEach { it.addMoney() }
+    }
+
+    /*
+    * Starts the game by generating the graph, setting the start time and changing the game status to running
+     */
+    fun startGame() {
+        gameStatus = GameStatus.RUNNING
+        gameGraph = Generator.getGraph(playerMap.toMap().values.toList())
+        startTime = System.currentTimeMillis()
+    }
+
+    fun endGameIfPossible() {
+        gameStatus = when {
+            gameGraph.getTotalPacketsDelivered() >= gameGoal -> {
+                GameStatus.FINISHED_WON
+            }
+
+            System.currentTimeMillis() - startTime > gameLength * 1000 -> {
+                GameStatus.FINISHED_LOST
+            }
+
+            else -> {
+                gameStatus
+            }
+        }
     }
 }
 
