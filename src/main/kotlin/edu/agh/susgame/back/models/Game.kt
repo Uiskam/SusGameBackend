@@ -1,6 +1,6 @@
 package edu.agh.susgame.back.models
 
-import edu.agh.susgame.back.Connection
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.dto.rest.model.*
@@ -21,9 +21,9 @@ class Game(
 
     val id = lastId.getAndIncrement()
 
-    private val playerMap: MutableMap<Connection, Player> = ConcurrentHashMap()
+    private val playerMap: MutableMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
 
-    fun addPlayer(connection: Connection, newPlayer: Player) {
+    fun addPlayer(connection: GamesWebSocketConnection, newPlayer: Player) {
         if (playerMap.values.any { it.name == newPlayer.name }) {
             throw IllegalArgumentException("Player with name $newPlayer.name already exists")
         }
@@ -45,7 +45,7 @@ class Game(
         )
     }
 
-    fun getPlayers(): MutableMap<Connection, Player> {
+    fun getPlayers(): MutableMap<GamesWebSocketConnection, Player> {
         return playerMap
     }
 

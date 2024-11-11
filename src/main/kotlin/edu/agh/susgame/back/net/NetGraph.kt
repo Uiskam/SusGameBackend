@@ -59,13 +59,13 @@ class NetGraph {
         }
     }
 
-    fun getHost(index: Int) = hosts[index]
-    fun getRouter(index: Int) = routers[index]
-    fun getServer(index: Int) = servers[index]
+    fun getHost(index: Int): Host? = hosts[index]
+    fun getRouter(index: Int): Router? = routers[index]
+    fun getServer(index: Int): Server? = servers[index]
 
-    fun getHostsList() = hosts.values.toList()
-    fun getRoutersList() = routers.values.toList()
-    fun getServersList() = servers.values.toList()
+    fun getHostsList(): List<Host> = hosts.values.toList()
+    fun getRoutersList(): List<Router> = routers.values.toList()
+    fun getServersList(): List<Server> = servers.values.toList()
 
     /**
      * Connects two nodes in the graph with an edge.
@@ -95,9 +95,8 @@ class NetGraph {
      * @param node The node to retrieve neighbours of.
      * @return The HashSet of the neighbours. Null if node does not exist.
      */
-    fun getNeighbours(node: Node): HashSet<Node>? {
-        return structure[node]?.keys?.let { HashSet(it) }
-    }
+    fun getNeighbours(node: Node): HashSet<Node>? =
+        structure[node]?.keys?.let { HashSet(it) }
 
     /**
      * Retrieves the edge between two nodes
@@ -106,9 +105,24 @@ class NetGraph {
      * @param endNode Ending node of the edge.
      * @return The edge between nodes. Null if edge does not exist.
      */
-    fun getEdge(startNode: Node, endNode: Node): Edge? {
-        return structure[startNode]?.get(endNode)
-    }
+    fun getEdge(startNode: Node, endNode: Node): Edge? =
+        structure[startNode]?.get(endNode)
+
+    /**
+     * Retrieves the edge with a given id (also called index)
+     *
+     * @param edgeId ID of an edge
+     * @return The edge with given id. Null if edge does not exist.
+     */
+    fun getEdgeById(edgeId: Int): Edge? =
+        getEdges().firstOrNull { it.index == edgeId }
+
+    /**
+     * Retrieves all the edges from the graph.
+     *
+     * @return HashSet of all edges.
+     */
+    fun getEdges(): HashSet<Edge> = edges
 
     /**
      * Retrieves all the nodes from the graph.
@@ -118,11 +132,13 @@ class NetGraph {
     fun getNodes(): HashSet<Node> = HashSet(structure.keys)
 
     /**
-     * Retrieves all the edges from the graph.
+     * Retrieves the node with given id (also called index)
      *
-     * @return HashSet of all edges.
+     * @param nodeId ID of an edge
+     * @return The node with given id. Null if node does not exist.
      */
-    fun getEdges(): HashSet<Edge> = edges
+    fun getNodeById(nodeId: Int): Node? =
+        getNodes().firstOrNull { it.index == nodeId }
 
     /**
      * Checks if two nodes are neighbors in NetGraph structure.
