@@ -16,7 +16,7 @@ class Game(
     val gamePin: String? = null,
     var gameStatus: GameStatus = GameStatus.WAITING,
     var gameGraph: NetGraph = NetGraph(),
-    private val gameLength: Int = GAME_TIME_DEFAULT,
+    private val gameLength: Long = GAME_TIME_DEFAULT,
     private val gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL,
     private var startTime: Long = -1,
 
@@ -55,8 +55,8 @@ class Game(
         return playerMap
     }
 
-    fun addMoneyForAllPlayers() {
-        playerMap.values.forEach { it.addMoney() }
+    fun addMoneyPerIterationForAllPlayers() {
+        playerMap.values.forEach { it.addMoneyPerIteration() }
     }
 
     /*
@@ -68,13 +68,22 @@ class Game(
         startTime = System.currentTimeMillis()
     }
 
+    /**
+     * Ends the game if certain conditions are met.
+     *
+     * The game will end if:
+     * - The total packets delivered to the server(s) are greater than or equal to the game goal.
+     * - The current time exceeds the game length since the start time.
+     *
+     * The game status will be updated to either FINISHED_WON or FINISHED_LOST based on the conditions.
+     */
     fun endGameIfPossible() {
         gameStatus = when {
             gameGraph.getTotalPacketsDelivered() >= gameGoal -> {
                 GameStatus.FINISHED_WON
             }
 
-            System.currentTimeMillis() - startTime > gameLength * 1000 -> {
+            System.currentTimeMillis() - startTime > gameLength -> {
                 GameStatus.FINISHED_LOST
             }
 
@@ -83,6 +92,16 @@ class Game(
             }
         }
     }
+
+    fun getRandomQuestion(): Pair<Int, QuizQuestion> {
+        val randomIndex = QuizQuestions.indices.random()
+        return Pair(randomIndex, QuizQuestions[randomIndex])
+    }
+
+    fun getQuestionById(questionId: Int): QuizQuestion {
+        return QuizQuestions[questionId]
+    }
+
 }
 
 class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {

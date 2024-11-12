@@ -41,4 +41,12 @@ sealed class ServerSocketMessage {
         val authorNickname: String,
         val message: String,
     ) : ServerSocketMessage()
+
+    @Serializable
+    data class QuizQuestionDTO(
+        val questionId: Int,
+        val question: String,
+        val answers: List<String>,
+        val correctAnswer: Int,
+    ) : ServerSocketMessage()
 }
