@@ -165,12 +165,11 @@ fun Route.gameRouting() {
                                 GameStatus.RUNNING -> {
                                     when (game.gameStatus) {
                                         GameStatus.WAITING -> {
-                                            game.gameStatus = GameStatus.RUNNING
-                                            game.gameGraph = Generator.getGraph(playerMap.toMap().values.toList())
-
+                                            game.startGame()
                                             // sends game status updates to all players
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
+                                                    game.endGameIfPossible()
                                                     playerMap.toMap().keys.forEach { connection ->
                                                         connection.sendServerSocketMessage(
                                                             ServerSocketMessageParser.gameToGameState(game)
@@ -197,7 +196,7 @@ fun Route.gameRouting() {
                                     }
                                 }
 
-                                GameStatus.FINISHED ->
+                                GameStatus.FINISHED_WON, GameStatus.FINISHED_LOST->
                                     thisConnection.sendServerSocketMessage(
                                         ServerSocketMessage.ServerError(
                                             errorMessage = "Game cannot be set to FINISHED by client!",
@@ -208,8 +207,6 @@ fun Route.gameRouting() {
 
                         is ClientSocketMessage.HostDTO -> {
                             when (game.gameStatus) {
-
-                                //TODO implement support for packets per tick
                                 GameStatus.RUNNING -> when (val host = game.gameGraph.getHost(receivedMessage.id)) {
                                     null -> thisConnection.sendServerSocketMessage(
                                         ServerSocketMessage.ServerError(
