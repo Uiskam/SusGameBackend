@@ -55,6 +55,10 @@ class Game(
         return playerMap
     }
 
+    fun addMoneyPerIterationForAllPlayers() {
+        playerMap.values.forEach { it.addMoneyPerIteration() }
+    }
+
     /*
     * Starts the game by generating the graph, setting the start time and changing the game status to running
      */

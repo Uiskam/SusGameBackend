@@ -184,6 +184,7 @@ fun Route.gameRouting() {
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     kotlinx.coroutines.delay(BFS_FREQUENCY)
+                                                    game.addMoneyPerIterationForAllPlayers()
                                                     bfs.run()
                                                 }
                                             }
@@ -289,8 +290,7 @@ fun Route.gameRouting() {
 
                         is ClientSocketMessage.QuizAnswerDTO -> {
                             val player = playerMap[thisConnection] ?: throw IllegalStateException("Player not found")
-                            val questionId = receivedMessage.questionId
-                            val question = game.getQuestionById(questionId)
+                            val question = game.getQuestionById(receivedMessage.questionId)
                             if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == player.activeQuestionId) {
                                 player.addMoneyForCorrectAnswer()
                             }
