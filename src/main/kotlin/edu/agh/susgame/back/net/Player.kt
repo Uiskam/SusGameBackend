@@ -1,6 +1,6 @@
 package edu.agh.susgame.back.net
 
-import edu.agh.susgame.config.MONEY_GAIN_PER_ITERATION
+import edu.agh.susgame.config.MONEY_GAINED_BY_CORRECT_ANSWER
 import edu.agh.susgame.config.PLAYER_BASE_MONEY
 import edu.agh.susgame.dto.socket.server.PlayerDTO
 import edu.agh.susgame.dto.rest.model.*
@@ -12,6 +12,7 @@ class Player(
     val name: String,
     private val colorHex: Long = Random.nextLong(0, 0xFFFFFF),
     private var currentMoney: Int = PLAYER_BASE_MONEY,
+    var activeQuestionId: Int = -1
 ) {
     fun toREST(): PlayerREST {
         return PlayerREST(
@@ -37,8 +38,8 @@ class Player(
      * Adds money to the player's current balance.
      * Increments the player's current money by a predefined amount defined in the configuration.
      */
-    fun addMoney() {
-        currentMoney += MONEY_GAIN_PER_ITERATION
+    fun addMoneyForCorrectAnswer() {
+        currentMoney += MONEY_GAINED_BY_CORRECT_ANSWER
     }
 
 }
