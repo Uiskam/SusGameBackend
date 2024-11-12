@@ -85,7 +85,7 @@ class Host(
         val nonNullRoute = route ?: emptyList()
         return HostDTO(
             id = index,
-            packetPath = nonNullRoute.map { it.index },
+            packetRoute = nonNullRoute.map { it.index }
         )
     }
 

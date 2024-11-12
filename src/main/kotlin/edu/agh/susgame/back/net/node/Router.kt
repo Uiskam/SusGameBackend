@@ -15,7 +15,8 @@ import kotlin.math.ceil
  */
 class Router(
     index: Int,
-    private var bufferSize: Int
+    private var bufferSize: Int,
+    coordinates: Pair<Int, Int> = Pair(0, 0)
 ) : Receiving(index) {
 
     // Input buffer containing the packets received in a queue for every neighbor.
@@ -97,7 +98,11 @@ class Router(
     }
 
     fun toDTO(): RouterDTO {
-        return RouterDTO(index, bufferSize, spaceLeft, upgradeCost)
+        return RouterDTO(id=index,
+            bufferSize=bufferSize,
+            spaceLeft=spaceLeft,
+            upgradeCost=upgradeCost
+        )
     }
 
     /**

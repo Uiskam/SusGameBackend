@@ -15,7 +15,7 @@ class GraphTest {
      * Tests if the graph is properly initialized.
      */
     @Test
-    fun structureTest(){
+    fun `relations between structure elements`(){
         val graph = NetGraph()
 
         // Create graph elements

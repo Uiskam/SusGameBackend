@@ -8,7 +8,13 @@ import kotlinx.serialization.json.*
 import java.io.File
 
 @Serializable
-data class NodeJson(val type: String, val bufferSize: Int? = null)
+data class NodeJson(val type: String, val coordinates: Coordinates, val bufferSize: Int? = null)
+
+@Serializable
+data class Coordinates(
+    val x: Int,
+    val y: Int
+)
 
 @Serializable
 data class EdgeJson(val weight: Int, val from: Int, val to: Int)
@@ -55,6 +61,7 @@ class GraphParser {
         // IMPORTANT It is important for UpgradeDTO for each pair of node and edge to different index
         var nodeIndex = 0
         graphData.nodes.forEachIndexed { _, nodeJson ->
+            val coordinates = Pair(nodeJson.coordinates.x, nodeJson.coordinates.y)
             val node = when (nodeJson.type) {
                 "Host" -> {
                     val player = players.getOrNull(playerIndex)
@@ -62,8 +69,8 @@ class GraphParser {
                     playerIndex++
                     Host(nodeIndex, player)
                 }
-                "Router" -> Router(nodeIndex, nodeJson.bufferSize!!)
-                "Server" -> Server(nodeIndex)
+                "Router" -> Router(nodeIndex, nodeJson.bufferSize!!, coordinates)
+                "Server" -> Server(nodeIndex, coordinates)
                 else -> throw IllegalArgumentException("Unknown node type")
             }
             nodeMap[nodeIndex] = node
