@@ -1,11 +1,14 @@
 package edu.agh.susgame.back.net
 
+import edu.agh.susgame.back.net.node.Host
 import edu.agh.susgame.back.net.node.Node
+import edu.agh.susgame.back.net.node.Router
+import edu.agh.susgame.back.net.node.Server
 
 /**
  * Represents the structure of the net as an undirected graph
  */
-
+// IMPORTANT It is important for UpgradeDTO for each pair of node and edge to different index
 class NetGraph {
 
     // Structure of the graph
@@ -14,14 +17,57 @@ class NetGraph {
     // Mutable list of edges
     private val edges: HashSet<Edge> = HashSet()
 
+    // Map of hosts for DTO purposes
+    private val hosts = HashMap<Int, Host>()
+
+    // Map of routers for DTO purposes
+    private val routers = HashMap<Int, Router>()
+
+    // Map of servers for DTO purposes
+    private val servers = HashMap<Int, Server>()
+
+
+    /**
+     * Resets the packet counters for all edges.
+     * Sets the `transportedPacketsThisTurn` property of each edge to 0.
+     */
+    fun resetEdges() {
+        edges.forEach { it.transportedPacketsThisTick = 0 }
+    }
+
+    fun resetPacketsSentByHostsThisTick() {
+        val hosts = getHostsList()
+        hosts.forEach { host -> host.resetPacketsSentThisTick() }
+    }
+
+
     /**
      * Adds a new node to the graph.
      *
      * @param node The node to add to the graph.
      */
-    public fun addNode(node: Node) {
+    fun addNode(node: Node) {
         structure[node] = HashMap()
+
+        when (node) {
+            is Host -> hosts[node.index] = node
+            is Router -> routers[node.index] = node
+            is Server -> servers[node.index] = node
+            else -> {
+                throw IllegalArgumentException("Node type not recognized $node")
+            }
+        }
     }
+
+    fun getHost(index: Int): Host? = hosts[index]
+    fun getRouter(index: Int): Router? = routers[index]
+    fun getServer(index: Int): Server? = servers[index]
+
+    fun getHostsList(): List<Host> = hosts.values.toList()
+    fun getRoutersList(): List<Router> = routers.values.toList()
+    fun getServersList(): List<Server> = servers.values.toList()
+
+    fun getTotalPacketsDelivered () = servers.values.sumOf { it.getPacketsReceived() }
 
     /**
      * Connects two nodes in the graph with an edge.
@@ -32,7 +78,7 @@ class NetGraph {
      * @param endNode The ending node of the edge.
      * @param edge The edge to connect the nodes with.
      */
-    public fun addEdge(startNode: Node, endNode: Node, edge: Edge) {
+    fun addEdge(startNode: Node, endNode: Node, edge: Edge) {
         // Connect the nodes
         structure[startNode]!![endNode] = edge
         structure[endNode]!![startNode] = edge
@@ -51,9 +97,8 @@ class NetGraph {
      * @param node The node to retrieve neighbours of.
      * @return The HashSet of the neighbours. Null if node does not exist.
      */
-    public fun getNeighbours(node: Node): HashSet<Node>? {
-        return structure[node]?.keys?.let { HashSet(it) }
-    }
+    fun getNeighbours(node: Node): HashSet<Node>? =
+        structure[node]?.keys?.let { HashSet(it) }
 
     /**
      * Retrieves the edge between two nodes
@@ -62,23 +107,40 @@ class NetGraph {
      * @param endNode Ending node of the edge.
      * @return The edge between nodes. Null if edge does not exist.
      */
-    public fun getEdge(startNode: Node, endNode: Node): Edge? {
-        return structure[startNode]?.get(endNode)
-    }
+    fun getEdge(startNode: Node, endNode: Node): Edge? =
+        structure[startNode]?.get(endNode)
 
     /**
-     * Retrieves all the nodes from the graph.
+     * Retrieves the edge with a given id (also called index)
      *
-     * @return HashSet of all nodes.
+     * @param edgeId ID of an edge
+     * @return The edge with given id. Null if edge does not exist.
      */
-    public fun getNodes(): HashSet<Node> = HashSet( structure.keys )
+    fun getEdgeById(edgeId: Int): Edge? =
+        getEdges().firstOrNull { it.index == edgeId }
 
     /**
      * Retrieves all the edges from the graph.
      *
      * @return HashSet of all edges.
      */
-    public fun getEdges(): HashSet<Edge> = edges
+    fun getEdges(): HashSet<Edge> = edges
+
+    /**
+     * Retrieves all the nodes from the graph.
+     *
+     * @return HashSet of all nodes.
+     */
+    fun getNodes(): HashSet<Node> = HashSet(structure.keys)
+
+    /**
+     * Retrieves the node with given id (also called index)
+     *
+     * @param nodeId ID of an edge
+     * @return The node with given id. Null if node does not exist.
+     */
+    fun getNodeById(nodeId: Int): Node? =
+        getNodes().firstOrNull { it.index == nodeId }
 
     /**
      * Checks if two nodes are neighbors in NetGraph structure.
@@ -87,7 +149,7 @@ class NetGraph {
      * @param node2 Second node.
      * @return Boolean value if the second node is in the neighbor list of the first node.
      */
-    public fun areNeighbors(node1: Node, node2: Node): Boolean {
+    fun areNeighbors(node1: Node, node2: Node): Boolean {
         val neighbors = getNeighbours(node1)
         return neighbors?.contains(node2) ?: false
     }
@@ -95,12 +157,10 @@ class NetGraph {
     /**
      * Updates the buffers of all routers.
      */
-    public fun updateBuffers() {
+    fun updateBuffers() {
         val nodes = getNodes()
 
         nodes.forEach { node -> node.updateBuffer() }
     }
-
-
 
 }

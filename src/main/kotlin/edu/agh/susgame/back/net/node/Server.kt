@@ -1,6 +1,7 @@
 package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.dto.socket.server.ServerDTO
 
 class Server (
     index: Int
@@ -33,4 +34,11 @@ class Server (
      * @return How many packets has the server already received.
      */
     public fun getPacketsReceived(): Int = packetsReceived
+
+    public fun toDTO(): ServerDTO {
+        return ServerDTO(
+            id = index,
+            packetsReceived = packetsReceived
+        )
+    }
 }

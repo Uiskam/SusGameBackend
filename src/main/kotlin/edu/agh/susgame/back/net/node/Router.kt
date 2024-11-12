@@ -2,6 +2,10 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.config.*
+import edu.agh.susgame.dto.socket.server.RouterDTO
+import kotlin.math.ceil
 
 /**
  * Represents the router object. Extends Sending.
@@ -20,12 +24,15 @@ class Router(
     // Buffer containing the waiting packets in a queue for every neighbour.
     private val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
 
+    // cost of the next buffer capacity upgrade
+    private var upgradeCost: Int = ROUTER_DEFAULT_UPGRADE_COST
+
     init {
         spaceLeft = bufferSize
     } // How much space is left in the whole buffer
 
     // Adds a neighbour both to the neighbours list and the buffer
-    public override fun addNeighbour(node: Node, edge: Edge) {
+    override fun addNeighbour(node: Node, edge: Edge) {
         neighbors[node] = edge
         inputBuffer[node] = ArrayDeque<Packet>()
         buffer[node] = ArrayDeque<Packet>()
@@ -66,12 +73,22 @@ class Router(
     /**
      * Retrieves how much space is left in the router buffer
      */
-    public fun getSpaceLeft(): Int = spaceLeft
+    fun getSpaceLeft(): Int = spaceLeft
+
+    /**
+     * Retrieves the buffer size of the router
+     */
+    fun getBufferSize(): Int = bufferSize
+
+    /**
+     * Retrieves the cost of the next buffer capacity upgrade
+     */
+    fun getUpgradeCost(): Int = upgradeCost
 
     /**
      * Retrieves the all the packets in the buffers. Used for testing purposes.
      */
-    public fun getPackets(): List<Packet> {
+    fun getPackets(): List<Packet> {
         val packets = mutableListOf<Packet>()
         for ((_, queue) in buffer) {
             packets.addAll(queue)
@@ -79,5 +96,21 @@ class Router(
         return packets
     }
 
+    fun toDTO(): RouterDTO {
+        return RouterDTO(index, bufferSize, spaceLeft, upgradeCost)
+    }
 
+    /**
+     * Upgrades the buffer capacity and increases the upgrade cost.
+     */
+    fun upgradeBuffer(player: Player) {
+        if (player.getCurrentMoney() < upgradeCost) {
+            throw IllegalStateException("Player does not have enough money to upgrade the buffer")
+        }
+        player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
+        val nextBufferSize = nextRouterBufferSize(bufferSize)
+        spaceLeft += nextBufferSize - bufferSize
+        bufferSize = nextBufferSize
+        upgradeCost = nextRouterUpgradeCost(upgradeCost)
+    }
 }

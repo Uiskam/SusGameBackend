@@ -18,7 +18,12 @@ class BFS (
     // HashSet of all nodes
     private val nodes: HashSet<Node> = net.getNodes()
 
-    public fun run() {
+    fun run() {
+        // Reset edge packet counters
+        net.resetEdges()
+
+        // Reset packets send per tick counter
+        net.resetPacketsSentByHostsThisTick()
 
         // Visited
         val visited: HashMap<Node, Boolean> = nodes.associateWith { false } as HashMap<Node, Boolean>

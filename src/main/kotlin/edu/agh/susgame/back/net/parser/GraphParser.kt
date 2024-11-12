@@ -1,4 +1,4 @@
-package edu.agh.susgame.back.parser
+package edu.agh.susgame.back.net.parser
 
 import edu.agh.susgame.back.net.*
 import edu.agh.susgame.back.net.node.*
@@ -31,9 +31,11 @@ class GraphParser {
      *                                  enough players for the Host nodes, or if the JSON data is invalid.
      */
     fun parseFromFile(filePath: String, players: List<Player>): NetGraph {
-        val fileUrl = javaClass.getResource(filePath)
-            ?: throw IllegalArgumentException("File not found at path: $filePath")
-        val jsonString = File(fileUrl.toURI()).readText()
+        // This does not work on linux
+        //val fileUrl = javaClass.getResource(filePath)
+        //    ?: throw IllegalArgumentException("File not found at path: $filePath")
+        //val jsonString = File(fileUrl.toURI()).readText()
+        val jsonString = File(filePath).readText()
         return parseGraph(jsonString, players)
     }
 
@@ -49,8 +51,10 @@ class GraphParser {
         var playerIndex = 0 // Index of the player in the input player list used for associating every player
                             // with exactly one host.
 
-       // Create Nodes and add to the NetGraph
-        graphData.nodes.forEachIndexed { nodeIndex, nodeJson ->
+        // Create Nodes and add to the NetGraph
+        // IMPORTANT It is important for UpgradeDTO for each pair of node and edge to different index
+        var nodeIndex = 0
+        graphData.nodes.forEachIndexed { _, nodeJson ->
             val node = when (nodeJson.type) {
                 "Host" -> {
                     val player = players.getOrNull(playerIndex)
@@ -63,15 +67,18 @@ class GraphParser {
                 else -> throw IllegalArgumentException("Unknown node type")
             }
             nodeMap[nodeIndex] = node
+            nodeIndex++
             graph.addNode(node)
         }
 
         // Create Edges and connect Nodes
-        graphData.edges.forEachIndexed { edgeIndex, edgeJson ->
+        var edgeIndex = nodeIndex
+        graphData.edges.forEachIndexed { _, edgeJson ->
             val fromNode = nodeMap[edgeJson.from] ?: throw IllegalArgumentException("Node not found")
             val toNode = nodeMap[edgeJson.to] ?: throw IllegalArgumentException("Node not found")
             val edge = Edge(edgeIndex, edgeJson.weight)
             graph.addEdge(fromNode, toNode, edge)
+            edgeIndex++
         }
 
         return graph
