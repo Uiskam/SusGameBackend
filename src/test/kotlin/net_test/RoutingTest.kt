@@ -16,7 +16,7 @@ public class RoutingTest {
     private val player2 = Player(2, "player2")
 
     @Test
-    fun creatingPacketTest() {
+    fun `are the packets created`() {
 
         // Nodes
         val host0 = Host(0, player0) //host
@@ -41,7 +41,7 @@ public class RoutingTest {
     }
 
     @Test
-    fun collectPacketsFromOnePlayerTest() {
+    fun `are the packets collected from the one player`() {
         // Graph initialisation
         val graph = NetGraph()
 
@@ -110,7 +110,7 @@ public class RoutingTest {
     }
 
     @Test
-    fun collectPacketsFromMultiplePlayersTest() {
+    fun `are the packets collected from multiple players`() {
         // Graph initialisation
         val graph = NetGraph()
 

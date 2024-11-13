@@ -14,12 +14,14 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed class ServerSocketMessage {
-
+    /**
+     * Information about the whole game state that is coming periodically from the server
+     */
     @Serializable
     data class GameState(
         val routers: List<RouterDTO>,
-        val servers: List<ServerDTO>,
         val hosts: List<HostDTO>,
+        val server: ServerDTO,
         val edges: List<EdgeDTO>,
         val players: List<PlayerDTO>,
         val gameStatus: GameStatus,

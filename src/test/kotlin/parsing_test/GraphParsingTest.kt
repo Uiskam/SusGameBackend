@@ -2,6 +2,7 @@ package parsing_test
 
 import edu.agh.susgame.back.net.*
 import edu.agh.susgame.back.net.parser.GraphParser
+import junit.framework.TestCase.assertTrue
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -10,7 +11,7 @@ class NetGraphParsingTest {
     private val parser = GraphParser()
 
     @Test
-    fun parseGraphTest(){
+    fun `can parse graph from the file`(){
         val player0 = Player(0, "P0")
         val player1 = Player(1, "P1")
         val player2 = Player(2, "P2")
@@ -24,6 +25,5 @@ class NetGraphParsingTest {
         // Number of elements.
         assertEquals(6, graph.getNodes().size)
         assertEquals(6, graph.getEdges().size)
-
     }
 }

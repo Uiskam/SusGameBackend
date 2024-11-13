@@ -9,8 +9,7 @@ object ServerSocketMessageParser {
     fun gameToGameState(game: Game) = ServerSocketMessage.GameState(
         routers = game.gameGraph.getRoutersList()
             .map { it.toDTO() },
-        servers = game.gameGraph.getServersList()
-            .map { it.toDTO() },
+        server = game.gameGraph.getServer().toDTO(),
         hosts = game.gameGraph.getHostsList().map { it.toDTO() },
         edges = game.gameGraph.getEdges().map { it.toDTO() },
         players = game.getPlayers().toMap().values.map { it.toDTO() },

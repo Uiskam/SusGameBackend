@@ -6,6 +6,7 @@ import edu.agh.susgame.dto.rest.games.GamesRest
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
+import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
 import java.util.concurrent.CompletableFuture
 
@@ -61,6 +62,10 @@ class GamesRestImpl : GamesRest {
                 CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
             }
         }
+    }
+
+    override fun getGameMap(gameId: LobbyId): CompletableFuture<GetGameMapApiResult> {
+        TODO()
     }
 
     sealed class DeleteGameResult {

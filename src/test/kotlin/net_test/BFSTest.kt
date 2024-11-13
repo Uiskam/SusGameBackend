@@ -15,7 +15,7 @@ class BFSTest {
     private val player3 = Player(3, "player3")
 
     @Test
-    fun test1() {
+    fun `BFS one direction test scenario`() {
         // Graph initialisation
         val graph = NetGraph()
 
@@ -110,7 +110,7 @@ class BFSTest {
     }
 
     @Test
-    fun bidirectionalEdgeTest() {
+    fun `BFS two direction edges test scenario`() {
         val graph = NetGraph()
         //This is the same graph as in collectPacketsFromMultiplePlayersTest
         // Nodes

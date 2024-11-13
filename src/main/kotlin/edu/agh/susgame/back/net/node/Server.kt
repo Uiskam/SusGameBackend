@@ -4,7 +4,8 @@ import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.dto.socket.server.ServerDTO
 
 class Server (
-    index: Int
+    index: Int,
+    coordinates: Pair<Int, Int> = Pair(0, 0)
 ): Receiving(index) {
 
     private var packetsReceived = 0 // Variable representing the progress of the game.

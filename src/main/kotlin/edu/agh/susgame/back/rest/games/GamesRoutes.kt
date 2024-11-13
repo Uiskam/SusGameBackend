@@ -2,7 +2,6 @@ package edu.agh.susgame.back.rest.games
 
 import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.BFS
-import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.config.BFS_FREQUENCY
@@ -179,8 +178,9 @@ fun Route.gameRouting() {
                                                     kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }
+
                                             // performs BFS on the graph
-                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServersList()[0])
+                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServer())
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     kotlinx.coroutines.delay(BFS_FREQUENCY)
