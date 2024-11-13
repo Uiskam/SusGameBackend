@@ -178,7 +178,7 @@ fun Route.gameRouting() {
                                                     kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }
-                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServersList()[0])
+                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServer())
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     kotlinx.coroutines.delay(BFS_FREQUENCY)
@@ -267,6 +267,7 @@ fun Route.gameRouting() {
                                 )
                             }
                         }
+                        else -> TODO()
                     }
                 }
             } catch (e: Exception) {

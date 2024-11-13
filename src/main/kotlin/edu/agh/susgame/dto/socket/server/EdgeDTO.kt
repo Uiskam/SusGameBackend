@@ -11,5 +11,5 @@ import kotlinx.serialization.Serializable
 data class EdgeDTO(
     val id: Int,
     val upgradeCost: Int,
-    val packetsTransported: Int
+    val packetsTransported: Int,
 )
