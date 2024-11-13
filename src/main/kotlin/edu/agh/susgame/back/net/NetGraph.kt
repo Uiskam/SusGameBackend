@@ -24,7 +24,7 @@ class NetGraph {
     private val routers = HashMap<Int, Router>()
 
     // Map of servers for DTO purposes
-    private val servers = HashMap<Int, Server>()
+    private var server: Server? = null
 
 
     /**
@@ -52,7 +52,12 @@ class NetGraph {
         when (node) {
             is Host -> hosts[node.index] = node
             is Router -> routers[node.index] = node
-            is Server -> servers[node.index] = node
+            is Server -> {
+                if (server != null) {
+                    throw IllegalArgumentException("Server already exists in the graph")
+                }
+                server = node
+            }
             else -> {
                 throw IllegalArgumentException("Node type not recognized $node")
             }
@@ -61,13 +66,13 @@ class NetGraph {
 
     fun getHost(index: Int): Host? = hosts[index]
     fun getRouter(index: Int): Router? = routers[index]
-    fun getServer(index: Int): Server? = servers[index]
+    fun getServer(): Server = server!!
 
     fun getHostsList(): List<Host> = hosts.values.toList()
     fun getRoutersList(): List<Router> = routers.values.toList()
-    fun getServersList(): List<Server> = servers.values.toList()
 
-    fun getTotalPacketsDelivered () = servers.values.sumOf { it.getPacketsReceived() }
+
+    fun getTotalPacketsDelivered () = server!!.getPacketsReceived()
 
     /**
      * Connects two nodes in the graph with an edge.
