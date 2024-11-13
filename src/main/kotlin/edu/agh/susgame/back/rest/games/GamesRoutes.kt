@@ -86,15 +86,12 @@ fun Route.gameRouting() {
                     CreateGameApiResult.OtherError -> HttpUnknownErrorResponseBody
                 }
             )
-
-            call.respond(gamesRestImpl.createGame(request.gameName, request.maxNumberOfPlayers, request.gamePin))
         }
 
         // This method is not a part of contract (frontend doesn't use it), but it can stay for now
         delete("{gameId}") {
             val gameId = call.parameters["gameId"]?.toInt()
             gameId?.let {
-
                 when (gamesRestImpl.deleteGame(it)) {
                     DeleteGameResult.Success ->
                         call.respond(HttpStatusCode.OK)
@@ -117,7 +114,7 @@ fun Route.gameRouting() {
                 )
                 return@webSocket
             }
-            val game = gamesRestImpl.gameStorage.findGameById(gameId)
+            val game = gamesRestImpl.findGameById(gameId)
             if (game == null) {
                 close(
                     CloseReason(
@@ -129,7 +126,7 @@ fun Route.gameRouting() {
             }
 
             val thisConnection = GamesWebSocketConnection(this)
-            val thisPlayer = Player(index = game.getPlayers().size, name = playerName)
+            val thisPlayer = Player(index = game.getNextPlayerIdx(), name = playerName)
             game.addPlayer(thisConnection, newPlayer = thisPlayer)
             try {
                 for (frame in incoming) {
@@ -137,8 +134,17 @@ fun Route.gameRouting() {
                     frame as? Frame.Binary ?: continue
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
+                        // Handle lobby
+                        is ClientSocketMessage.PlayerJoiningRequest -> game.handlePlayerJoiningRequest(thisConnection, thisPlayer)
+
+                        is ClientSocketMessage.PlayerChangeReadinessRequest -> {}
+
+                        is ClientSocketMessage.PlayerLeavingRequest -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
+
+
+                        // Handle game
                         is ClientSocketMessage.ChatMessage -> {
-                            playerMap.toMap().forEach {
+                            playerMap.forEach {
                                 val connection = it.key
                                 val playerNickname = it.value
 
@@ -170,7 +176,7 @@ fun Route.gameRouting() {
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     game.endGameIfPossible()
-                                                    playerMap.toMap().keys.forEach { connection ->
+                                                    playerMap.keys.forEach { connection ->
                                                         connection.sendServerSocketMessage(
                                                             ServerSocketMessageParser.gameToGameState(game)
                                                         )

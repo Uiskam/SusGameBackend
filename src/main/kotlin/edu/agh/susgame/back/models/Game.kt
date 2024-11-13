@@ -6,12 +6,14 @@ import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.rest.model.*
+import edu.agh.susgame.dto.socket.ServerSocketMessage
 import edu.agh.susgame.dto.socket.common.GameStatus
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 class Game(
     val name: String,
+    val id: Int,
     val maxNumberOfPlayers: Int,
     val gamePin: String? = null,
     var gameStatus: GameStatus = GameStatus.WAITING,
@@ -19,21 +21,17 @@ class Game(
     private val gameLength: Long = GAME_TIME_DEFAULT,
     private val gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL,
     private var startTime: Long = -1,
-
     ) {
-    companion object {
-        val lastId = AtomicInteger(0)
-    }
-
-    val id = lastId.getAndIncrement()
 
     private val playerMap: MutableMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
+
+    private var nextPlayerIdx : AtomicInteger = AtomicInteger(0)
 
     fun addPlayer(connection: GamesWebSocketConnection, newPlayer: Player) {
         if (playerMap.values.any { it.name == newPlayer.name }) {
             throw IllegalArgumentException("Player with name $newPlayer.name already exists")
         }
-        playerMap[connection] = Player(index = playerMap.size, name = newPlayer.name)
+        playerMap[connection] = Player(index = nextPlayerIdx.getAndIncrement(), name = newPlayer.name)
     }
 
     fun removePlayer(playerName: String) {
@@ -51,13 +49,12 @@ class Game(
         )
     }
 
-    fun getPlayers(): MutableMap<GamesWebSocketConnection, Player> {
-        return playerMap
-    }
+    fun getPlayers(): Map<GamesWebSocketConnection, Player> = playerMap.toMap()
 
-    fun addMoneyPerIterationForAllPlayers() {
-        playerMap.values.forEach { it.addMoneyPerIteration() }
-    }
+    fun getNextPlayerIdx(): Int = nextPlayerIdx.get()
+
+    fun addMoneyPerIterationForAllPlayers() = playerMap.values.forEach { it.addMoneyPerIteration() }
+
 
     /*
     * Starts the game by generating the graph, setting the start time and changing the game status to running
@@ -102,27 +99,38 @@ class Game(
         return QuizQuestions[questionId]
     }
 
-}
+    /**
+     * ##################################################
+     * HANDLERS
+     * ##################################################
+     *
+     * Lobby
+     */
 
-class GameStorage(var gameList: MutableList<Game> = mutableListOf()) {
-    fun add(game: Game) {
-        gameList.add(game)
+    suspend fun handlePlayerJoiningRequest(thisConnection: GamesWebSocketConnection, sender: Player) {
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, player) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerJoiningResponse(playerId = sender.index, playerName = sender.name)
+                )
+            }
     }
 
-    fun remove(game: Game) {
-        gameList.remove(game)
+    fun handlePlayerChangeReadinessRequest(thisConnection: GamesWebSocketConnection) {
+        playerMap
+            .filter { it.key != thisConnection }
     }
 
-    fun findGameById(gameId: Int): Game? {
-        return gameList.find { it.id == gameId }
+    suspend fun handlePlayerLeavingRequest(thisConnection: GamesWebSocketConnection, sender: Player){
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, player) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerLeavingResponse(playerId = sender.index)
+                )
+            }
     }
 
-    fun findGameByName(gameName: String): Game? {
-        return gameList.find { it.name == gameName }
-    }
-
-    fun getReturnableData(): List<Lobby> {
-        return gameList.map { it.getDataToReturn() }
-    }
 
 }

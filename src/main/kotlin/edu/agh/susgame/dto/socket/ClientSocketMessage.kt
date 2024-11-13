@@ -1,7 +1,7 @@
 // WARNING: THIS FILE WAS CLONED AUTOMATICALLY FROM 'SusGameDTO' GITHUB REPOSITORY
 // IT SHOULD NOT BE EDITED IN ANY WAY
 // IN ORDER TO CHANGE THIS DTO, COMMIT TO 'SusGameDTO' GITHUB REPOSITORY
-// IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'
+// IN ORDER TO UPDATE THIS FILE TO NEWEST VERSION, RUN 'scripts/update-DTO.sh'\n\n
 
 package edu.agh.susgame.dto.socket
 
@@ -52,4 +52,28 @@ sealed class ClientSocketMessage {
         val questionId: Int,
         val answer: Int,
     ) : ClientSocketMessage()
+
+    @Serializable
+    data class PlayerJoiningRequest(
+        val playerId: Int,
+        val playerName: String
+    ) : ClientSocketMessage()
+
+    /**
+     * Used for handling player changing state in lobby
+     */
+    @Serializable
+    data class PlayerChangeReadinessRequest(
+        val playerId: Int,
+        val state: Boolean
+    ) : ClientSocketMessage()
+
+    /**
+     * Used for handling player leaving lobby
+     */
+    @Serializable
+    data class PlayerLeavingRequest(
+        val playerId: Int
+    ) : ClientSocketMessage()
+
 }

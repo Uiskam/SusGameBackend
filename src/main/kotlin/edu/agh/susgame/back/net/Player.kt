@@ -9,7 +9,7 @@ import kotlin.random.Random
 import edu.agh.susgame.dto.rest.model.PlayerREST
 
 class Player(
-    private val index: Int,
+    val index: Int,
     val name: String,
     private val colorHex: Long = Random.nextLong(0, 0xFFFFFF),
     private var currentMoney: Int = PLAYER_BASE_MONEY,
