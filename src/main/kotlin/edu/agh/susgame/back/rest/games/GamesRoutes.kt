@@ -7,6 +7,7 @@ import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.config.BFS_FREQUENCY
 import edu.agh.susgame.config.CLIENT_REFRESH_FREQUENCY
+import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
 import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
@@ -178,12 +179,32 @@ fun Route.gameRouting() {
                                                     kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
                                                 }
                                             }
-                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServer())
+
+                                            // performs BFS on the graph
+                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServersList()[0])
                                             launch {
                                                 while (game.gameStatus == GameStatus.RUNNING) {
                                                     kotlinx.coroutines.delay(BFS_FREQUENCY)
-                                                    game.addMoneyForAllPlayers()
+                                                    game.addMoneyPerIterationForAllPlayers()
                                                     bfs.run()
+                                                }
+                                            }
+                                            // sends questions to players
+                                            launch {
+                                                while (game.gameStatus == GameStatus.RUNNING) {
+                                                    game.getPlayers().toMap().forEach { (connection, player) ->
+                                                        val (questionId, question) = game.getRandomQuestion()
+                                                        player.activeQuestionId = questionId
+                                                        connection.sendServerSocketMessage(
+                                                            ServerSocketMessage.QuizQuestionDTO(
+                                                                questionId = questionId,
+                                                                question = question.question,
+                                                                answers = question.answers,
+                                                                correctAnswer = question.correctAnswer,
+                                                            )
+                                                        )
+                                                    }
+                                                    kotlinx.coroutines.delay(GAME_QUESTION_SENDING_INTERVAL)
                                                 }
                                             }
                                         }
@@ -267,7 +288,14 @@ fun Route.gameRouting() {
                                 )
                             }
                         }
-                        else -> TODO()
+
+                        is ClientSocketMessage.QuizAnswerDTO -> {
+                            val player = playerMap[thisConnection] ?: throw IllegalStateException("Player not found")
+                            val question = game.getQuestionById(receivedMessage.questionId)
+                            if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == player.activeQuestionId) {
+                                player.addMoneyForCorrectAnswer()
+                            }
+                        }
                     }
                 }
             } catch (e: Exception) {
