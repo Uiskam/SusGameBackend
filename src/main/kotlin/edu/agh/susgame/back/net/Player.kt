@@ -53,7 +53,7 @@ class Player(
      */
     fun setReadinessState(state: Boolean) {
         isReady = state
-    }
+        }
 
     fun isReady(): Boolean = isReady
 }

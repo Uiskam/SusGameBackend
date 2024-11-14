@@ -60,7 +60,7 @@ class Game(
 
     fun getPlayers(): Map<GamesWebSocketConnection, Player> = playerMap.toMap()
 
-    fun getNextPlayerIdx(): Int = nextPlayerIdx.get()
+    fun getNextPlayerIdx(): Int = nextPlayerIdx.getAndIncrement()
 
     fun addMoneyPerIterationForAllPlayers() {
         playerMap.values.forEach { it.addMoneyPerIteration() }
@@ -286,11 +286,9 @@ class Game(
     private fun runEngineIterationThread(webSocket: WebSocketSession) {
         webSocket.launch {
             while (gameStatus == GameStatus.RUNNING) {
-                playerMap.forEach { (connection, _) ->
-                    delay(BFS_FREQUENCY)
-                    addMoneyPerIterationForAllPlayers()
-                    bfs!!.run()
-                }
+                delay(BFS_FREQUENCY)
+                addMoneyPerIterationForAllPlayers()
+                bfs!!.run()
             }
         }
     }

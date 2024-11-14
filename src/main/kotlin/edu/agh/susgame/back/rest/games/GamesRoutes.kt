@@ -126,8 +126,15 @@ fun Route.gameRouting() {
             }
 
             val thisConnection = GamesWebSocketConnection(this)
-            val thisPlayer = Player(index = game.getNextPlayerIdx(), name = playerName)
+            val playerIndex = game.getNextPlayerIdx()
+
+            thisConnection.sendServerSocketMessage(ServerSocketMessage.IdConfig(playerIndex))
+
+            val thisPlayer = Player(index = playerIndex, name = playerName)
             game.addPlayer(thisConnection, newPlayer = thisPlayer)
+
+            game.handlePlayerJoiningRequest(thisConnection, thisPlayer)
+
             try {
                 for (frame in incoming) {
                     val playerMap = game.getPlayers()
@@ -135,7 +142,7 @@ fun Route.gameRouting() {
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         // Handle lobby
-                        is ClientSocketMessage.PlayerJoiningRequest -> game.handlePlayerJoiningRequest(thisConnection, thisPlayer)
+                        is ClientSocketMessage.PlayerJoiningRequest -> {}
 
                         is ClientSocketMessage.PlayerChangeReadinessRequest -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
 
