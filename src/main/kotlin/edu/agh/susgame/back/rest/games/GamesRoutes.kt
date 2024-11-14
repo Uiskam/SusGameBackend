@@ -137,162 +137,18 @@ fun Route.gameRouting() {
                         // Handle lobby
                         is ClientSocketMessage.PlayerJoiningRequest -> game.handlePlayerJoiningRequest(thisConnection, thisPlayer)
 
-                        is ClientSocketMessage.PlayerChangeReadinessRequest -> {}
+                        is ClientSocketMessage.PlayerChangeReadinessRequest -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
 
                         is ClientSocketMessage.PlayerLeavingRequest -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
 
-
                         // Handle game
-                        is ClientSocketMessage.ChatMessage -> {
-                            playerMap.forEach {
-                                val connection = it.key
-                                val playerNickname = it.value
+                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(thisConnection, thisPlayer, receivedMessage)
 
-                                if (connection != thisConnection) {
-                                    connection.sendServerSocketMessage(
-                                        ServerSocketMessage.ChatMessage(
-                                            authorNickname = playerNickname.name,
-                                            message = receivedMessage.message,
-                                        )
-                                    )
-                                }
-                            }
-                        }
+                        is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
-                        is ClientSocketMessage.GameState -> {
-                            when (receivedMessage.gameStatus) {
-                                GameStatus.WAITING ->
-                                    thisConnection.sendServerSocketMessage(
-                                        ServerSocketMessage.ServerError(
-                                            errorMessage = "Game cannot be set to WAITING by client!",
-                                        )
-                                    )
+                        is ClientSocketMessage.HostDTO -> game.handleHostDTO(thisConnection, receivedMessage)
 
-                                GameStatus.RUNNING -> {
-                                    when (game.gameStatus) {
-                                        GameStatus.WAITING -> {
-                                            game.startGame()
-                                            // sends game status updates to all players
-                                            launch {
-                                                while (game.gameStatus == GameStatus.RUNNING) {
-                                                    game.endGameIfPossible()
-                                                    playerMap.keys.forEach { connection ->
-                                                        connection.sendServerSocketMessage(
-                                                            ServerSocketMessageParser.gameToGameState(game)
-                                                        )
-                                                    }
-                                                    kotlinx.coroutines.delay(CLIENT_REFRESH_FREQUENCY)
-                                                }
-                                            }
-
-                                            // performs BFS on the graph
-                                            val bfs = BFS(game.gameGraph, game.gameGraph.getServer())
-                                            launch {
-                                                while (game.gameStatus == GameStatus.RUNNING) {
-                                                    kotlinx.coroutines.delay(BFS_FREQUENCY)
-                                                    game.addMoneyPerIterationForAllPlayers()
-                                                    bfs.run()
-                                                }
-                                            }
-                                            // sends questions to players
-                                            launch {
-                                                while (game.gameStatus == GameStatus.RUNNING) {
-                                                    game.getPlayers().toMap().forEach { (connection, player) ->
-                                                        val (questionId, question) = game.getRandomQuestion()
-                                                        player.activeQuestionId = questionId
-                                                        connection.sendServerSocketMessage(
-                                                            ServerSocketMessage.QuizQuestionDTO(
-                                                                questionId = questionId,
-                                                                question = question.question,
-                                                                answers = question.answers,
-                                                                correctAnswer = question.correctAnswer,
-                                                            )
-                                                        )
-                                                    }
-                                                    kotlinx.coroutines.delay(GAME_QUESTION_SENDING_INTERVAL)
-                                                }
-                                            }
-                                        }
-
-                                        else -> thisConnection.sendServerSocketMessage(
-                                            ServerSocketMessage.ServerError(
-                                                errorMessage = "Game cannot be set to FINISHED by client!",
-                                            )
-                                        )
-                                    }
-                                }
-
-                                GameStatus.FINISHED_WON, GameStatus.FINISHED_LOST->
-                                    thisConnection.sendServerSocketMessage(
-                                        ServerSocketMessage.ServerError(
-                                            errorMessage = "Game cannot be set to FINISHED by client!",
-                                        )
-                                    )
-                            }
-                        }
-
-                        is ClientSocketMessage.HostDTO -> {
-                            when (game.gameStatus) {
-                                GameStatus.RUNNING -> when (val host = game.gameGraph.getHost(receivedMessage.id)) {
-                                    null -> thisConnection.sendServerSocketMessage(
-                                        ServerSocketMessage.ServerError(
-                                            "There is no host with id of ${receivedMessage.id}"
-                                        )
-                                    )
-
-                                    else -> try {
-                                        val route = receivedMessage.packetPath.flatMap { nodeId ->
-                                            when (val node = game.gameGraph.getNodeById(nodeId)) {
-                                                null -> emptyList()
-                                                else -> listOf(node)
-                                            }
-                                        }
-                                        host.setRoute(route)
-
-                                        host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
-                                    } catch (e: IllegalArgumentException) {
-                                        thisConnection.sendServerSocketMessage(
-                                            ServerSocketMessage.ServerError(e.message ?: "Unknown error")
-                                        )
-                                    }
-                                }
-
-                                else -> thisConnection.sendServerSocketMessage(
-                                    ServerSocketMessage.ServerError("Game is not in a running state")
-                                )
-                            }
-                        }
-
-                        is ClientSocketMessage.UpgradeDTO -> {
-                            when (game.gameStatus) {
-                                GameStatus.RUNNING -> try {
-                                    val deviceIdToUpgrade = receivedMessage.deviceId
-
-                                    val edge = game.gameGraph.getEdgeById(deviceIdToUpgrade)
-                                    val router = game.gameGraph.getRouter(deviceIdToUpgrade)
-
-                                    if (edge != null) {
-                                        edge.upgradeWeight(thisPlayer)
-                                    } else if (router != null) {
-                                        router.upgradeBuffer(thisPlayer)
-                                    } else {
-                                        thisConnection.sendServerSocketMessage(
-                                            ServerSocketMessage.ServerError(
-                                                "There is neither an edge not a host with id of $deviceIdToUpgrade."
-                                            )
-                                        )
-                                    }
-                                } catch (e: IllegalStateException) {
-                                    thisConnection.sendServerSocketMessage(
-                                        ServerSocketMessage.ServerError(e.message ?: "Unknown error")
-                                    )
-                                }
-
-                                else -> thisConnection.sendServerSocketMessage(
-                                    ServerSocketMessage.ServerError("Game is not in running state.")
-                                )
-                            }
-                        }
+                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(thisConnection, receivedMessage, thisPlayer)
 
                         is ClientSocketMessage.QuizAnswerDTO -> {
                             val player = playerMap[thisConnection] ?: throw IllegalStateException("Player not found")

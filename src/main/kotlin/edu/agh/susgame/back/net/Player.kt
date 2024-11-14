@@ -11,6 +11,7 @@ import edu.agh.susgame.dto.rest.model.PlayerREST
 class Player(
     val index: Int,
     val name: String,
+    private var isReady: Boolean = false,
     private val colorHex: Long = Random.nextLong(0, 0xFFFFFF),
     private var currentMoney: Int = PLAYER_BASE_MONEY,
     var activeQuestionId: Int = -1
@@ -47,5 +48,12 @@ class Player(
         currentMoney += MONEY_GAIN_PER_ITERATION
     }
 
+    /**
+     * State of player readiness
+     */
+    fun setReadinessState(state: Boolean) {
+        isReady = state
+    }
 
+    fun isReady(): Boolean = isReady
 }
