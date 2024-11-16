@@ -2,9 +2,9 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
 
-abstract class Receiving (
+abstract class Receiving(
     index: Int
-): Node(index) {
+) : Node(index) {
 
     // Pointer on last processed neighbour index for load balancing
     internal var pointer: Int = 0
@@ -18,12 +18,14 @@ abstract class Receiving (
      * Collects packets from the neighbours using Round Robin algorithm and adds them to the buffer.
      * Updates the packet route by popping the next node.
      */
-    public override fun collectPackets() {
+    override fun collectPackets() {
         val bandwidthLeft =
-            neighbors.mapNotNull { it.value.getWeight() }.toMutableList()  // List representing how many packets can be sent using every edge in current iteration.
+            neighbors.mapNotNull { it.value.getWeight() }
+                .toMutableList()  // List representing how many packets can be sent using every edge in current iteration.
         val neighborList = neighbors.keys.toList()
 
-        var noInputCounter = 0 // Counter checking how many neighbors did not send the packet. If the value grows to `numNeighbors` it means, that there are no packets directed to this node.
+        var noInputCounter =
+            0 // Counter checking how many neighbors did not send the packet. If the value grows to `numNeighbors` it means, that there are no packets directed to this node.
         while (spaceLeft > 0) {
 
             noInputCounter++
@@ -35,15 +37,16 @@ abstract class Receiving (
                     pushPacket(packet)
                     bandwidthLeft[pointer]-- // Update the number of packets that can be sent using this edge.
                     noInputCounter = 0 // Try another round over the neighbors looking for new packet
-                    neighbors[neighborList[pointer]]?.transportedPacketsThisTick = neighbors[neighborList[pointer]]?.transportedPacketsThisTick!! + 1
-                // Update the number of packets transported using this edge, for DTO purposes
+                    neighbors[neighborList[pointer]]?.transportedPacketsThisTick =
+                        neighbors[neighborList[pointer]]?.transportedPacketsThisTick!! + 1
+                    // Update the number of packets transported using this edge, for DTO purposes
                 }
 
             }
 
             pointer = (pointer + 1) % countNeighbours() // Update the pointer to the next neighbor
-            
-            if ( noInputCounter == countNeighbours() ) break // No neighbors had packets directed to this node.
+
+            if (noInputCounter == countNeighbours()) break // No neighbors had packets directed to this node.
         }
     }
 

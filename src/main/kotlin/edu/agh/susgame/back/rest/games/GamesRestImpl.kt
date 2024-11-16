@@ -34,7 +34,7 @@ class GamesRestImpl : GamesRest {
                 id = 3,
                 maxNumberOfPlayers = 3,
             ),
-        ).toMutableList()
+        )
     )
 
     private val nextGameId: AtomicInteger = AtomicInteger(gameStorage.size())
@@ -84,7 +84,7 @@ class GamesRestImpl : GamesRest {
     // This method is not a part of contract (frontend doesn't use it), but it can stay for now
     fun deleteGame(gameId: Int): DeleteGameResult {
 
-        if (gameStorage.exists(gameId)) {
+        if (!gameStorage.exists(gameId)) {
             return DeleteGameResult.GameDoesNotExist
         } else {
             gameStorage.remove(gameId)

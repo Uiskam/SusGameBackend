@@ -1,12 +1,8 @@
 package edu.agh.susgame.back.rest.games
 
-import edu.agh.susgame.back.socket.GamesWebSocketConnection
-import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
-import edu.agh.susgame.config.BFS_FREQUENCY
-import edu.agh.susgame.config.CLIENT_REFRESH_FREQUENCY
-import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
 import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
@@ -14,7 +10,6 @@ import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
-import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -23,7 +18,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -142,20 +136,33 @@ fun Route.gameRouting() {
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         // Handle lobby
-                        is ClientSocketMessage.PlayerJoiningRequest -> {}
+                        is ClientSocketMessage.PlayerChangeReadinessRequest -> game.handlePlayerChangeReadinessRequest(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
-                        is ClientSocketMessage.PlayerChangeReadinessRequest -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
-
-                        is ClientSocketMessage.PlayerLeavingRequest -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
+                        is ClientSocketMessage.PlayerLeavingRequest -> game.handlePlayerLeavingRequest(
+                            thisConnection,
+                            thisPlayer
+                        )
 
                         // Handle game
-                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(thisConnection, thisPlayer, receivedMessage)
+                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
                         is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
                         is ClientSocketMessage.HostDTO -> game.handleHostDTO(thisConnection, receivedMessage)
 
-                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(thisConnection, receivedMessage, thisPlayer)
+                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
+                            thisConnection,
+                            receivedMessage,
+                            thisPlayer
+                        )
 
                         is ClientSocketMessage.QuizAnswerDTO -> {
                             val player = playerMap[thisConnection] ?: throw IllegalStateException("Player not found")
@@ -164,6 +171,8 @@ fun Route.gameRouting() {
                                 player.addMoneyForCorrectAnswer()
                             }
                         }
+
+                        else -> {}
                     }
                 }
             } catch (e: Exception) {
