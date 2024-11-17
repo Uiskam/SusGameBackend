@@ -3,9 +3,10 @@ package edu.agh.susgame.back.net.node
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.config.*
+import edu.agh.susgame.config.ROUTER_DEFAULT_UPGRADE_COST
+import edu.agh.susgame.config.nextRouterBufferSize
+import edu.agh.susgame.config.nextRouterUpgradeCost
 import edu.agh.susgame.dto.socket.server.RouterDTO
-import kotlin.math.ceil
 
 /**
  * Represents the router object. Extends Sending.
@@ -14,10 +15,10 @@ import kotlin.math.ceil
  * @param bufferSize Size of the buffer in the router.
  */
 class Router(
-    index: Int,
+    override val index: Int,
+    override val coordinates: Pair<Int, Int>,
     private var bufferSize: Int,
-    coordinates: Pair<Int, Int> = Pair(0, 0)
-) : Receiving(index) {
+) : Receiving() {
 
     // Input buffer containing the packets received in a queue for every neighbor.
     private val inputBuffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
@@ -98,10 +99,11 @@ class Router(
     }
 
     fun toDTO(): RouterDTO {
-        return RouterDTO(id=index,
-            bufferSize=bufferSize,
-            spaceLeft=spaceLeft,
-            upgradeCost=upgradeCost
+        return RouterDTO(
+            id = index,
+            bufferSize = bufferSize,
+            spaceLeft = spaceLeft,
+            upgradeCost = upgradeCost
         )
     }
 

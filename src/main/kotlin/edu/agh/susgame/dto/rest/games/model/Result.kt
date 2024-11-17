@@ -37,6 +37,8 @@ sealed class GetGameMapApiResult(responseCode: Int) : ApiResult(responseCode) {
 
     data object GameDoesNotExist : GetGameMapApiResult(HttpURLConnection.HTTP_NOT_FOUND)
 
+    data object GameNotYetStarted : GetGameMapApiResult(HttpURLConnection.HTTP_BAD_REQUEST)
+
     data object OtherError : GetGameMapApiResult(HttpURLConnection.HTTP_INTERNAL_ERROR)
 }
 

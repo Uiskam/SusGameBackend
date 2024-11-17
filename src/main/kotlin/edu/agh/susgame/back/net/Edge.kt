@@ -13,8 +13,9 @@ import edu.agh.susgame.config.*
 class Edge(
     val index: Int,
     private var weight: Int,
+    val connectedNodesIds: Pair<Int, Int>,
     var transportedPacketsThisTick: Int = 0,
-    private var upgradeCost: Int = EDGE_DEFAULT_UPGRADE_COST
+    private var upgradeCost: Int = EDGE_DEFAULT_UPGRADE_COST,
 ) {
 
     fun getWeight() = weight

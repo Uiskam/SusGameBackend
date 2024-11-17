@@ -67,9 +67,9 @@ class GraphParser {
                     val player = players.getOrNull(playerIndex)
                         ?: throw IllegalArgumentException("Not enough players for hosts")
                     playerIndex++
-                    Host(nodeIndex, player)
+                    Host(nodeIndex, coordinates, player)
                 }
-                "Router" -> Router(nodeIndex, nodeJson.bufferSize!!, coordinates)
+                "Router" -> Router(nodeIndex, coordinates, nodeJson.bufferSize!!)
                 "Server" -> Server(nodeIndex, coordinates)
                 else -> throw IllegalArgumentException("Unknown node type")
             }
@@ -83,7 +83,7 @@ class GraphParser {
         graphData.edges.forEachIndexed { _, edgeJson ->
             val fromNode = nodeMap[edgeJson.from] ?: throw IllegalArgumentException("Node not found")
             val toNode = nodeMap[edgeJson.to] ?: throw IllegalArgumentException("Node not found")
-            val edge = Edge(edgeIndex, edgeJson.weight)
+            val edge = Edge(edgeIndex, edgeJson.weight, connectedNodesIds = Pair(edgeJson.from, edgeJson.to))
             graph.addEdge(fromNode, toNode, edge)
             edgeIndex++
         }

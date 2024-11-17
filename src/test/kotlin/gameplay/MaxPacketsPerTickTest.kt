@@ -1,17 +1,18 @@
 package gameplay
 
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.net.node.Host
 import edu.agh.susgame.back.net.parser.GraphParser
 import edu.agh.susgame.config.PLAYER_MAX_PACKETS_PER_TICK
+import net_test.TestUtils
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class MaxPacketsPerTickTest {
+class MaxPacketsPerTickTest : TestUtils {
     private val parser = GraphParser()
+
     @Test
     fun test() {
         val player0 = Player(0, "P0")
@@ -20,7 +21,7 @@ class MaxPacketsPerTickTest {
         val players = listOf(player0, player1)
         val graph = parser.parseFromFile(filePath, players)
 
-        val host = Host(0, player0)
+        val host = newTestHost(0, player0)
         assertFailsWith<IllegalArgumentException> { host.setMaxPacketsPerTick(-1) }
         assertFailsWith<IllegalArgumentException> { host.setMaxPacketsPerTick(PLAYER_MAX_PACKETS_PER_TICK + 1) }
         host.setMaxPacketsPerTick(1)

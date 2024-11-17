@@ -5,7 +5,7 @@ import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.rest.games.ServerSocketMessageParser
+import edu.agh.susgame.back.rest.games.RestParser
 import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.ClientSocketMessage
@@ -275,7 +275,7 @@ class Game(
                 endGameIfPossible()
                 playerMap.forEach { (connection, _) ->
                     connection.sendServerSocketMessage(
-                        ServerSocketMessageParser.gameToGameState(this@Game)
+                        RestParser.gameToGameState(this@Game)
                     )
                 }
                 delay(CLIENT_REFRESH_FREQUENCY)  // delay should be used from kotlinx.coroutines
