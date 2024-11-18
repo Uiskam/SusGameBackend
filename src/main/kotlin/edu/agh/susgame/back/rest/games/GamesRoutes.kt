@@ -156,11 +156,9 @@ fun Route.gameRouting() {
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         // Handle lobby
-                        is ClientSocketMessage.PlayerJoiningRequest -> {}
+                        is ClientSocketMessage.PlayerChangeReadiness -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
 
-                        is ClientSocketMessage.PlayerChangeReadinessRequest -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
-
-                        is ClientSocketMessage.PlayerLeavingRequest -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
+                        is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
 
                         // Handle game
                         is ClientSocketMessage.ChatMessage -> game.handleChatMessage(thisConnection, thisPlayer, receivedMessage)

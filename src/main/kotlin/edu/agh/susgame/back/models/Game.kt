@@ -2,20 +2,21 @@ package edu.agh.susgame.back.models
 
 import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.Generator
-import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.rest.games.RestParser
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
-import edu.agh.susgame.dto.rest.model.*
+import edu.agh.susgame.dto.rest.model.Lobby
+import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
 
 class Game(
     val name: String,
@@ -125,19 +126,23 @@ class Game(
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
                 connection.sendServerSocketMessage(
-                    ServerSocketMessage.PlayerJoiningResponse(playerId = thisPlayer.index, playerName = thisPlayer.name)
+                    ServerSocketMessage.PlayerJoining(playerId = thisPlayer.index, playerName = thisPlayer.name)
                 )
             }
     }
 
-    suspend fun handlePlayerChangeReadinessRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player, receivedMessage: ClientSocketMessage.PlayerChangeReadinessRequest) {
+    suspend fun handlePlayerChangeReadinessRequest(
+        thisConnection: GamesWebSocketConnection,
+        thisPlayer: Player,
+        receivedMessage: ClientSocketMessage.PlayerChangeReadiness
+    ) {
         val readinessState: Boolean = receivedMessage.state
         thisPlayer.setReadinessState(readinessState)
         playerMap
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
                 connection.sendServerSocketMessage(
-                    ServerSocketMessage.PlayerChangeReadinessResponse(playerId = thisPlayer.index, state = readinessState)
+                    ServerSocketMessage.PlayerChangeReadiness(playerId = thisPlayer.index, state = readinessState)
                 )
             }
     }
@@ -147,7 +152,7 @@ class Game(
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
                 connection.sendServerSocketMessage(
-                    ServerSocketMessage.PlayerLeavingResponse(playerId = thisPlayer.index)
+                    ServerSocketMessage.PlayerLeaving(playerId = thisPlayer.index)
                 )
             }
     }
