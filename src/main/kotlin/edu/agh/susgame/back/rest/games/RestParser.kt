@@ -3,7 +3,6 @@ package edu.agh.susgame.back.rest.games
 import edu.agh.susgame.back.models.Game
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
-import edu.agh.susgame.dto.rest.model.Coordinates
 import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO
 import edu.agh.susgame.dto.rest.model.GameMapNodeDTO
 import edu.agh.susgame.dto.socket.ServerSocketMessage
@@ -24,20 +23,20 @@ object RestParser {
     fun netGraphToGetGameMapApiResult(netGraph: NetGraph): GetGameMapApiResult.Success {
         val server = GameMapNodeDTO.Server(
             id = netGraph.getServer().index,
-            coordinates = coordinatesToApi(netGraph.getServer().coordinates),
+            coordinates = netGraph.getServer().getCoordinates(),
         )
 
         val hosts = netGraph.getHostsList().map { host ->
             GameMapNodeDTO.Host(
                 id = host.index,
-                coordinates = coordinatesToApi(host.coordinates),
+                coordinates = host.getCoordinates(),
             )
         }
 
         val routers = netGraph.getRoutersList().map { router ->
             GameMapNodeDTO.Router(
                 id = router.index,
-                coordinates = coordinatesToApi(router.coordinates),
+                coordinates = router.getCoordinates(),
                 bufferSize = router.getBufferSize(),
             )
         }
@@ -54,7 +53,4 @@ object RestParser {
             },
         )
     }
-
-    private fun coordinatesToApi(coordinatesAsPair: Pair<Int, Int>): Coordinates =
-        coordinatesAsPair.let { (x, y) -> Coordinates(x, y) }
 }
