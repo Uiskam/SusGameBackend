@@ -1,20 +1,12 @@
 package edu.agh.susgame.back.rest.games
 
-import edu.agh.susgame.back.socket.GamesWebSocketConnection
-import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.Player
 import edu.agh.susgame.back.rest.games.GamesRestImpl.DeleteGameResult
-import edu.agh.susgame.config.BFS_FREQUENCY
-import edu.agh.susgame.config.CLIENT_REFRESH_FREQUENCY
-import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
-import edu.agh.susgame.dto.rest.games.model.CreateGameApiResult
-import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
-import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
-import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
+import edu.agh.susgame.back.socket.GamesWebSocketConnection
+import edu.agh.susgame.dto.rest.games.model.*
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
-import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -23,7 +15,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
@@ -62,10 +53,33 @@ fun Route.gameRouting() {
                         status = result.let { HttpStatusCode.fromValue(it.responseCode) },
                         message = when (result) {
                             is GetGameApiResult.Success -> result.lobby
+                            
                             GetGameApiResult.DoesNotExist ->
                                 HttpErrorResponseBody("Game with ${lobbyId.value} not found")
 
                             GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
+                        }
+                    )
+                }
+        }
+
+        get("map/{gameId}") {
+            call.parameters["gameId"]
+                ?.toInt()
+                ?.let { LobbyId(it) }
+                ?.let { lobbyId ->
+                    val result = gamesRestImpl.getGameMap(lobbyId).await()
+
+                    call.respond(
+                        status = result.let { HttpStatusCode.fromValue(it.responseCode) },
+                        message = when (result) {
+                            is GetGameMapApiResult.Success -> result
+                            GetGameMapApiResult.GameDoesNotExist ->
+                                HttpErrorResponseBody("Game ${lobbyId.value} was not found")
+
+                            GetGameMapApiResult.GameNotYetStarted ->
+                                HttpErrorResponseBody("Game ${lobbyId.value} is not yet started")
+                            GetGameMapApiResult.OtherError -> HttpUnknownErrorResponseBody
                         }
                     )
                 }
