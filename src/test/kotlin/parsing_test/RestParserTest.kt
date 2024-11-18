@@ -25,19 +25,19 @@ class RestParserTest : TestUtils {
         // Create graph elements
         val player0 = Player(0, "Player0")
 
-        val Coordinates1 = Coordinates(2, 1)
-        val Coordinates2 = Coordinates(3, 7)
-        val Coordinates3 = Coordinates(0xACAB, 0xACAB)
-        val Coordinates4 = Coordinates(966, 1410)
+        val coordinates1 = Coordinates(2, 1)
+        val coordinates2 = Coordinates(3, 7)
+        val coordinates3 = Coordinates(0xACAB, 0xACAB)
+        val coordinates4 = Coordinates(966, 1410)
 
         // nodes
         // host
-        val node1 = Host(0, asPair(Coordinates1), player0)
+        val node1 = Host(0, asPair(coordinates1), player0)
         //routers
-        val node2 = Router(1, asPair(Coordinates2),  5)
-        val node3 = Router(2, asPair(Coordinates3), 2)
+        val node2 = Router(1, asPair(coordinates2),  5)
+        val node3 = Router(2, asPair(coordinates3), 2)
         // server
-        val node4 = Server(3, asPair(Coordinates4))
+        val node4 = Server(3, asPair(coordinates4))
 
         // Add elements to the structure
         graph.addNode(node1)
@@ -61,10 +61,10 @@ class RestParserTest : TestUtils {
         assertEquals(result.responseCode, 200)
 
         assertEquals(result.nodes.size, 4)
-        assertContains(result.nodes, HostDTO(id = 0, coordinates = Coordinates1))
-        assertContains(result.nodes, RouterDTO(id = 1, coordinates = Coordinates2, bufferSize = 5))
-        assertContains(result.nodes, RouterDTO(id = 2, coordinates = Coordinates3, bufferSize = 2))
-        assertContains(result.nodes, ServerDTO(id = 3, coordinates = Coordinates4))
+        assertContains(result.nodes, HostDTO(id = 0, coordinates = coordinates1))
+        assertContains(result.nodes, RouterDTO(id = 1, coordinates = coordinates2, bufferSize = 5))
+        assertContains(result.nodes, RouterDTO(id = 2, coordinates = coordinates3, bufferSize = 2))
+        assertContains(result.nodes, ServerDTO(id = 3, coordinates = coordinates4))
 
         assertEquals(result.edges.size, 4)
         assertContains(result.edges, EdgeDTO(from = 0, to = 1, weight = 32))
