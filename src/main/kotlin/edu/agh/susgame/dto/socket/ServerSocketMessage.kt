@@ -14,6 +14,9 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 sealed class ServerSocketMessage {
+    /**
+     * Informs the client about its ID
+     */
     @Serializable
     data class IdConfig(
         val id: Int

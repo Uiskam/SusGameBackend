@@ -74,7 +74,8 @@ fun Route.gameRouting() {
                     call.respond(
                         status = result.let { HttpStatusCode.fromValue(it.responseCode) },
                         message = when (result) {
-                            is GetGameMapApiResult.Success -> result
+                            is GetGameMapApiResult.Success -> result.gameMap
+
                             GetGameMapApiResult.GameDoesNotExist ->
                                 HttpErrorResponseBody("Game ${lobbyId.value} was not found")
 
@@ -193,8 +194,6 @@ fun Route.gameRouting() {
                                 player.addMoneyForCorrectAnswer()
                             }
                         }
-
-                        else -> {}
                     }
                 }
             } catch (e: Exception) {

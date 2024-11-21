@@ -72,7 +72,9 @@ class GamesRestImpl : GamesRest {
 
         val netGraph = game.netGraph
 
-        return@supplyAsync RestParser.netGraphToGetGameMapApiResult(netGraph)
+        return@supplyAsync GetGameMapApiResult.Success(
+            gameMap = RestParser.netGraphToGetGameMapDTO(netGraph),
+        )
     }
 
     fun findGameById(gameId: Int): Game? = gameStorage.findGameById(gameId)
