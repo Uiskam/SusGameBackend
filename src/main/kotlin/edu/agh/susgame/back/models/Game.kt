@@ -25,16 +25,17 @@ class Game(
     val gamePin: String? = null,
     private val gameLength: Long = GAME_TIME_DEFAULT,
     private val gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL,
-    ) {
+) {
 
     @Volatile
-    var gameStatus: GameStatus = GameStatus.WAITING
+    private var gameStatus: GameStatus = GameStatus.WAITING
 
-    private val playerMap: MutableMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
-    private var nextPlayerIdx : AtomicInteger = AtomicInteger(0)
+    private val playerMap: ConcurrentHashMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
+    private var nextPlayerIdx: AtomicInteger = AtomicInteger(0)
 
-    var netGraph: NetGraph? = null
-    var bfs: BFS? = null
+    lateinit var netGraph: NetGraph
+    lateinit var bfs: BFS
+
     private var startTime: Long = -1
 
     fun addPlayer(connection: GamesWebSocketConnection, newPlayer: Player) {
@@ -59,6 +60,8 @@ class Game(
         )
     }
 
+    fun getGameStatus(): GameStatus = gameStatus
+
     fun getPlayers(): Map<GamesWebSocketConnection, Player> = playerMap.toMap()
 
     fun getNextPlayerIdx(): Int = nextPlayerIdx.getAndIncrement()
@@ -67,15 +70,15 @@ class Game(
         playerMap.values.forEach { it.addMoneyPerIteration() }
     }
 
-    fun areAllPlayersReady() = playerMap.values.all { it.isReady() }
+    fun areAllPlayersReady() = playerMap.values.all { it.isReady }
 
     /*
     * Starts the game by generating the graph, setting the start time and changing the game status to running
      */
     fun startGame(graph: NetGraph? = null) {
-        gameStatus = GameStatus.RUNNING
         netGraph = graph ?: Generator.getGraph(playerMap.values.toList())
-        bfs = BFS(net = netGraph!!, root = netGraph!!.getServer())
+        bfs = BFS(net = netGraph, root = netGraph.getServer())
+        gameStatus = GameStatus.RUNNING
         startTime = System.currentTimeMillis()
     }
 
@@ -90,7 +93,7 @@ class Game(
      */
     fun endGameIfPossible() {
         gameStatus = when {
-            netGraph!!.getTotalPacketsDelivered() >= gameGoal -> {
+            netGraph.getTotalPacketsDelivered() >= gameGoal -> {
                 GameStatus.FINISHED_WON
             }
 
@@ -147,7 +150,7 @@ class Game(
             }
     }
 
-    suspend fun handlePlayerLeavingRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player){
+    suspend fun handlePlayerLeavingRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
         playerMap
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
@@ -161,14 +164,17 @@ class Game(
      * Game handlers
      */
 
-    suspend fun handleChatMessage(thisConnection: GamesWebSocketConnection, thisPlayer: Player, receivedMessage: ClientSocketMessage.ChatMessage) {
-        playerMap
-            .filter { it.key != thisConnection }
-            .forEach { (connection, _) ->
-                connection.sendServerSocketMessage(
-                    ServerSocketMessage.ChatMessage( authorNickname = thisPlayer.name, message = receivedMessage.message,)
+    suspend fun handleChatMessage(
+        thisConnection: GamesWebSocketConnection, thisPlayer: Player, receivedMessage: ClientSocketMessage.ChatMessage
+    ) {
+        playerMap.filter { it.key != thisConnection }.forEach { (connection, _) ->
+            connection.sendServerSocketMessage(
+                ServerSocketMessage.ChatMessage(
+                    authorNickname = thisPlayer.name,
+                    message = receivedMessage.message,
                 )
-            }
+            )
+        }
     }
 
     suspend fun handleGameState(receivedGameStatus: ClientSocketMessage.GameState, webSocket: WebSocketSession) {
@@ -185,7 +191,9 @@ class Game(
         if (areAllPlayersReady()) {
             gameStatus = GameStatus.RUNNING
             startGame()
+            notifyAllAboutGameStart()
 
+            // GAME IS RUNNING
             broadcastStateThread(webSocket)
             runEngineIterationThread(webSocket)
             quizQuestionsThread(webSocket)
@@ -194,7 +202,15 @@ class Game(
         }
 
 
+    }
 
+    private suspend fun notifyAllAboutGameStart() {
+        playerMap
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.GameStarted(0)
+                )
+            }
     }
 
     suspend fun handleHostDTO(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostDTO) {
@@ -202,16 +218,16 @@ class Game(
             sendErrorMessage("Invalid game status on server: Game is not running")
             return
         }
-        val host = netGraph!!.getHost(receivedMessage.id)
+        val host = netGraph.getHost(receivedMessage.id)
 
         if (host == null) {
             sendErrorMessage("There is no host with id of ${receivedMessage.id}")
             return
         }
 
-       try {
+        try {
             val route = receivedMessage.packetPath.flatMap { nodeId ->
-                when (val node = netGraph!!.getNodeById(nodeId)) {
+                when (val node = netGraph.getNodeById(nodeId)) {
                     null -> emptyList()
                     else -> listOf(node)
                 }
@@ -227,7 +243,9 @@ class Game(
 
     }
 
-    suspend fun handleUpgradeDTO(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.UpgradeDTO, thisPlayer: Player) {
+    suspend fun handleUpgradeDTO(
+        thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.UpgradeDTO, thisPlayer: Player
+    ) {
         if (!gameStatus.equals(GameStatus.RUNNING)) {
             sendErrorMessage("Invalid game status on server: Game is not running")
             return
@@ -235,8 +253,8 @@ class Game(
         try {
             val deviceIdToUpgrade = receivedMessage.deviceId
 
-            val edge = netGraph!!.getEdgeById(deviceIdToUpgrade)
-            val router = netGraph!!.getRouter(deviceIdToUpgrade)
+            val edge = netGraph.getEdgeById(deviceIdToUpgrade)
+            val router = netGraph.getRouter(deviceIdToUpgrade)
 
             if (edge != null) {
                 edge.upgradeWeight(thisPlayer)
@@ -260,12 +278,11 @@ class Game(
      * Other messages
      */
     suspend fun sendErrorMessage(errorMessage: String) {
-        playerMap
-            .forEach { (connection, _) ->
-                connection.sendServerSocketMessage(
-                    ServerSocketMessage.ServerError(errorMessage=errorMessage)
-                )
-            }
+        playerMap.forEach { (connection, _) ->
+            connection.sendServerSocketMessage(
+                ServerSocketMessage.ServerError(errorMessage = errorMessage)
+            )
+        }
     }
 
     /**
@@ -293,7 +310,7 @@ class Game(
             while (gameStatus == GameStatus.RUNNING) {
                 delay(BFS_FREQUENCY)
                 addMoneyPerIterationForAllPlayers()
-                bfs!!.run()
+                bfs.run()
             }
         }
     }

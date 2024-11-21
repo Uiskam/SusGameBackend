@@ -1,17 +1,18 @@
 package edu.agh.susgame.back.net
 
 import edu.agh.susgame.config.MONEY_GAINED_BY_CORRECT_ANSWER
-import edu.agh.susgame.config.PLAYER_BASE_MONEY
 import edu.agh.susgame.config.MONEY_GAIN_PER_ITERATION
-import edu.agh.susgame.dto.socket.server.PlayerDTO
-import edu.agh.susgame.dto.rest.model.*
-import kotlin.random.Random
+import edu.agh.susgame.config.PLAYER_BASE_MONEY
+import edu.agh.susgame.dto.rest.model.PlayerId
+import edu.agh.susgame.dto.rest.model.PlayerNickname
 import edu.agh.susgame.dto.rest.model.PlayerREST
+import edu.agh.susgame.dto.socket.server.PlayerDTO
+import kotlin.random.Random
 
 class Player(
     val index: Int,
     val name: String,
-    private var isReady: Boolean = false,
+    var isReady: Boolean = false,
     private val colorHex: Long = Random.nextLong(0, 0xFFFFFF),
     private var currentMoney: Int = PLAYER_BASE_MONEY,
     var activeQuestionId: Int = -1
@@ -53,7 +54,6 @@ class Player(
      */
     fun setReadinessState(state: Boolean) {
         isReady = state
-        }
+    }
 
-    fun isReady(): Boolean = isReady
 }

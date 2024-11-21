@@ -1,7 +1,9 @@
 package edu.agh.susgame.back.net
 
+import edu.agh.susgame.config.EDGE_DEFAULT_UPGRADE_COST
+import edu.agh.susgame.config.nextEdgeUpgradeCost
+import edu.agh.susgame.config.nextEdgeWeight
 import edu.agh.susgame.dto.socket.server.EdgeDTO
-import edu.agh.susgame.config.*
 
 /**
  * Represents an edge in a graph.

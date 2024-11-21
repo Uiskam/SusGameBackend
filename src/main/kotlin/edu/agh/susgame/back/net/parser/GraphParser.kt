@@ -1,10 +1,14 @@
 package edu.agh.susgame.back.net.parser
 
-import edu.agh.susgame.back.net.*
-import edu.agh.susgame.back.net.node.*
-
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import edu.agh.susgame.back.net.Edge
+import edu.agh.susgame.back.net.NetGraph
+import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.back.net.node.Host
+import edu.agh.susgame.back.net.node.Node
+import edu.agh.susgame.back.net.node.Router
+import edu.agh.susgame.back.net.node.Server
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.io.File
 
 @Serializable
@@ -51,11 +55,11 @@ class GraphParser {
 
         val graph = NetGraph()
         val nodeMap = mutableMapOf<Int, Node>() // Map registering nodes under dynamically added indexes.
-                                                // Edges connections are associated with the order of the
-                                                // nodes in the json file.
+        // Edges connections are associated with the order of the
+        // nodes in the json file.
 
         var playerIndex = 0 // Index of the player in the input player list used for associating every player
-                            // with exactly one host.
+        // with exactly one host.
 
         // Create Nodes and add to the NetGraph
         // IMPORTANT It is important for UpgradeDTO for each pair of node and edge to different index
@@ -69,6 +73,7 @@ class GraphParser {
                     playerIndex++
                     Host(nodeIndex, coordinates, player)
                 }
+
                 "Router" -> Router(nodeIndex, coordinates, nodeJson.bufferSize!!)
                 "Server" -> Server(nodeIndex, coordinates)
                 else -> throw IllegalArgumentException("Unknown node type")

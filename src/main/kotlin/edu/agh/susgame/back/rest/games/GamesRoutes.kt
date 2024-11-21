@@ -53,7 +53,7 @@ fun Route.gameRouting() {
                         status = result.let { HttpStatusCode.fromValue(it.responseCode) },
                         message = when (result) {
                             is GetGameApiResult.Success -> result.lobby
-                            
+
                             GetGameApiResult.DoesNotExist ->
                                 HttpErrorResponseBody("Game with ${lobbyId.value} not found")
 
@@ -79,6 +79,7 @@ fun Route.gameRouting() {
 
                             GetGameMapApiResult.GameNotYetStarted ->
                                 HttpErrorResponseBody("Game ${lobbyId.value} is not yet started")
+
                             GetGameMapApiResult.OtherError -> HttpUnknownErrorResponseBody
                         }
                     )
@@ -156,18 +157,33 @@ fun Route.gameRouting() {
 
                     when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
                         // Handle lobby
-                        is ClientSocketMessage.PlayerChangeReadiness -> game.handlePlayerChangeReadinessRequest(thisConnection, thisPlayer, receivedMessage)
+                        is ClientSocketMessage.PlayerChangeReadiness -> game.handlePlayerChangeReadinessRequest(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
-                        is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(thisConnection, thisPlayer)
+                        is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(
+                            thisConnection,
+                            thisPlayer
+                        )
 
                         // Handle game
-                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(thisConnection, thisPlayer, receivedMessage)
+                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
                         is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
                         is ClientSocketMessage.HostDTO -> game.handleHostDTO(thisConnection, receivedMessage)
 
-                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(thisConnection, receivedMessage, thisPlayer)
+                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
+                            thisConnection,
+                            receivedMessage,
+                            thisPlayer
+                        )
 
                         is ClientSocketMessage.QuizAnswerDTO -> {
                             val player = playerMap[thisConnection] ?: throw IllegalStateException("Player not found")
@@ -176,6 +192,8 @@ fun Route.gameRouting() {
                                 player.addMoneyForCorrectAnswer()
                             }
                         }
+
+                        else -> {}
                     }
                 }
             } catch (e: Exception) {

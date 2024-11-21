@@ -11,13 +11,13 @@ import edu.agh.susgame.dto.socket.ServerSocketMessage
 object RestParser {
 
     fun gameToGameState(game: Game) = ServerSocketMessage.GameState(
-        routers = game.netGraph!!.getRoutersList()
+        routers = game.netGraph.getRoutersList()
             .map { it.toDTO() },
-        server = game.netGraph!!.getServer().toDTO(),
-        hosts = game.netGraph!!.getHostsList().map { it.toDTO() },
-        edges = game.netGraph!!.getEdges().map { it.toDTO() },
+        server = game.netGraph.getServer().toDTO(),
+        hosts = game.netGraph.getHostsList().map { it.toDTO() },
+        edges = game.netGraph.getEdges().map { it.toDTO() },
         players = game.getPlayers().toMap().values.map { it.toDTO() },
-        gameStatus = game.gameStatus,
+        gameStatus = game.getGameStatus(),
     )
 
     fun netGraphToGetGameMapApiResult(netGraph: NetGraph): GetGameMapApiResult.Success {

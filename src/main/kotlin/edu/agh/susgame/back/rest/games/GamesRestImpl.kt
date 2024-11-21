@@ -7,6 +7,7 @@ import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.socket.common.GameStatus
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -34,7 +35,7 @@ class GamesRestImpl : GamesRest {
                 id = 3,
                 maxNumberOfPlayers = 3,
             ),
-        ).toMutableList()
+        )
     )
 
     private val nextGameId: AtomicInteger = AtomicInteger(gameStorage.size())
@@ -67,7 +68,9 @@ class GamesRestImpl : GamesRest {
     override fun getGameMap(gameId: LobbyId): CompletableFuture<GetGameMapApiResult> = CompletableFuture.supplyAsync {
         val game = gameStorage.findGameById(gameId.value) ?: return@supplyAsync GetGameMapApiResult.GameDoesNotExist
 
-        val netGraph = game.netGraph ?: return@supplyAsync GetGameMapApiResult.GameNotYetStarted
+        if (game.getGameStatus() != GameStatus.RUNNING) return@supplyAsync GetGameMapApiResult.GameNotYetStarted
+
+        val netGraph = game.netGraph
 
         return@supplyAsync RestParser.netGraphToGetGameMapApiResult(netGraph)
     }
@@ -82,7 +85,7 @@ class GamesRestImpl : GamesRest {
     // This method is not a part of contract (frontend doesn't use it), but it can stay for now
     fun deleteGame(gameId: Int): DeleteGameResult {
 
-        if (gameStorage.exists(gameId)) {
+        if (!gameStorage.exists(gameId)) {
             return DeleteGameResult.GameDoesNotExist
         } else {
             gameStorage.remove(gameId)

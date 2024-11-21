@@ -10,7 +10,7 @@ import edu.agh.susgame.back.net.node.Receiving
  * @param net The graph structure.
  * @param root Server node from the BFS tree starts from.
  */
-class BFS (
+class BFS(
     private val net: NetGraph,
     private val root: Node
 ) {
@@ -32,7 +32,7 @@ class BFS (
         val queue = ArrayDeque<Node>()
         queue.add(root)
 
-        while(!queue.isEmpty()) {
+        while (!queue.isEmpty()) {
 
             val currentNode = queue.removeFirst()
             visited[currentNode] = true
@@ -54,7 +54,6 @@ class BFS (
 
 
     }
-
 
 
 }

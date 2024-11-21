@@ -20,6 +20,14 @@ sealed class ServerSocketMessage {
     ) : ServerSocketMessage()
 
     /**
+     *
+     */
+    @Serializable
+    data class GameStarted(
+        val id: Int
+    ) : ServerSocketMessage()
+
+    /**
      * Information about the whole game state that is coming periodically from the server
      */
     @Serializable

@@ -8,14 +8,14 @@ import edu.agh.susgame.back.net.node.Router
 import edu.agh.susgame.back.net.node.Server
 import edu.agh.susgame.back.rest.games.RestParser
 import edu.agh.susgame.dto.rest.model.Coordinates
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Host as HostDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Server as ServerDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Router as RouterDTO
-import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO as EdgeDTO
 import net_test.TestUtils
 import org.junit.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO as EdgeDTO
+import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Host as HostDTO
+import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Router as RouterDTO
+import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Server as ServerDTO
 
 class RestParserTest : TestUtils {
     @Test
@@ -34,7 +34,7 @@ class RestParserTest : TestUtils {
         // host
         val node1 = Host(0, asPair(coordinates1), player0)
         //routers
-        val node2 = Router(1, asPair(coordinates2),  5)
+        val node2 = Router(1, asPair(coordinates2), 5)
         val node3 = Router(2, asPair(coordinates3), 2)
         // server
         val node4 = Server(3, asPair(coordinates4))

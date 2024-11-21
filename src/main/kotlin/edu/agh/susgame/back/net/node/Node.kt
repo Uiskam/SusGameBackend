@@ -7,6 +7,8 @@ import edu.agh.susgame.dto.rest.model.Coordinates
 
 /**
  * Abstract class representing the node in the net.
+ *
+ * @param index Index of the node. Supposed to be unique.
  */
 abstract class Node {
     /**
