@@ -1,11 +1,11 @@
 package net_test
 
-import edu.agh.susgame.back.net.*
-import edu.agh.susgame.back.net.node.*
+import edu.agh.susgame.back.net.NetGraph
+import edu.agh.susgame.back.net.Player
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-public class RoutingTest {
+class RoutingTest : TestUtils {
 
     /**
      * Tests if the packet is properly created.
@@ -19,9 +19,9 @@ public class RoutingTest {
     fun `are the packets created`() {
 
         // Nodes
-        val host0 = Host(0, player0) //host
-        val router1 = Router(1, 5) // router
-        val server2 = Server(2) // server
+        val host0 = newTestHost(0, player0) //host
+        val router1 = newTestRouter(1, 5) // router
+        val server2 = newTestServer(2) // server
 
         // create the nodeList for packet route ant set the route
         val nodeList = listOf(router1, server2)
@@ -46,16 +46,16 @@ public class RoutingTest {
         val graph = NetGraph()
 
         // Nodes
-        val host0 = Host(0, player0) //host
-        val router1 = Router(1, 5) // router
-        val router2 = Router(2, 5) // router
-        val server3 = Server(3) // server
+        val host0 = newTestHost(0, player0) //host
+        val router1 = newTestRouter(1, 5) // router
+        val router2 = newTestRouter(2, 5) // router
+        val server3 = newTestServer(3) // server
 
         // Edges
-        val edge0 = Edge(0, 10)
-        val edge1 = Edge(1, 5)
-        val edge2 = Edge(2, 2)
-        val edge3 = Edge(3, 2)
+        val edge0 = newTestEdge(0, 10)
+        val edge1 = newTestEdge(1, 5)
+        val edge2 = newTestEdge(2, 2)
+        val edge3 = newTestEdge(3, 2)
 
 
         // Add elements to the structure
@@ -95,7 +95,7 @@ public class RoutingTest {
         router2.collectPackets()
         // spaceLeft in `router2` is supposed to be equal to 3 because weight of `edge0` is 2 and bufferSize of `router1` is 5.
         // spaceLeft in `router1` is supposed to be equal to 3 because `router2` takes 2 packets.
-        assertEquals( 3, router2.getSpaceLeft())
+        assertEquals(3, router2.getSpaceLeft())
         assertEquals(2, router1.getSpaceLeft())
 
         router2.updateBuffer()
@@ -116,20 +116,20 @@ public class RoutingTest {
 
         // Nodes
         //hosts
-        val host0 = Host(0, player0)
-        val host1 = Host(1, player1)
-        val host2 = Host(2, player2)
-        val router3 = Router(1, 6) // router
-        val router4= Router(2, 5) // router
-        val server5 = Server(3) // server
+        val host0 = newTestHost(0, player0)
+        val host1 = newTestHost(1, player1)
+        val host2 = newTestHost(2, player2)
+        val router3 = newTestRouter(1, 6) // router
+        val router4 = newTestRouter(2, 5) // router
+        val server5 = newTestServer(3) // server
 
         // Edges
-        val edge0 = Edge(0, 4)
-        val edge1 = Edge(1, 2)
-        val edge2 = Edge(2, 10)
-        val edge3 = Edge(3, 10)
-        val edge4 = Edge(4, 5)
-        val edge5 = Edge(5, 4)
+        val edge0 = newTestEdge(0, 4)
+        val edge1 = newTestEdge(1, 2)
+        val edge2 = newTestEdge(2, 10)
+        val edge3 = newTestEdge(3, 10)
+        val edge4 = newTestEdge(4, 5)
+        val edge5 = newTestEdge(5, 4)
 
 
         // Add elements to the structure

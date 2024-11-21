@@ -2,6 +2,7 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.dto.rest.model.Coordinates
 
 
 /**
@@ -9,12 +10,18 @@ import edu.agh.susgame.back.net.Packet
  *
  * @param index Index of the node. Supposed to be unique.
  */
-abstract class Node(
-    internal val index: Int
-) {
+abstract class Node {
+    /**
+     * Index of the node. Supposed to be unique.
+     */
+    internal abstract val index: Int
+    abstract val coordinates: Pair<Int, Int>
 
     // LinkedHashMap for a fixed order for use in Round Robin algorithm
     internal val neighbors: LinkedHashMap<Node, Edge> = linkedMapOf()
+
+    fun getCoordinates(): Coordinates =
+        coordinates.let { (x, y) -> Coordinates(x, y) }
 
     /**
      * Adds a new neighbor with the edge.

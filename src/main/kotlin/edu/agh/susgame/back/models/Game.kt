@@ -4,7 +4,7 @@ import edu.agh.susgame.back.net.BFS
 import edu.agh.susgame.back.net.Generator
 import edu.agh.susgame.back.net.NetGraph
 import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.rest.games.ServerSocketMessageParser
+import edu.agh.susgame.back.rest.games.RestParser
 import edu.agh.susgame.back.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.rest.model.Lobby
@@ -76,9 +76,9 @@ class Game(
     * Starts the game by generating the graph, setting the start time and changing the game status to running
      */
     fun startGame(graph: NetGraph? = null) {
-        gameStatus = GameStatus.RUNNING
         netGraph = graph ?: Generator.getGraph(playerMap.values.toList())
         bfs = BFS(net = netGraph, root = netGraph.getServer())
+        gameStatus = GameStatus.RUNNING
         startTime = System.currentTimeMillis()
     }
 
@@ -125,35 +125,39 @@ class Game(
      */
 
     suspend fun handlePlayerJoiningRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
-        playerMap.filter { it.key != thisConnection }.forEach { (connection, _) ->
-            connection.sendServerSocketMessage(
-                ServerSocketMessage.PlayerJoiningResponse(playerId = thisPlayer.index, playerName = thisPlayer.name)
-            )
-        }
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerJoining(playerId = thisPlayer.index, playerName = thisPlayer.name)
+                )
+            }
     }
 
     suspend fun handlePlayerChangeReadinessRequest(
         thisConnection: GamesWebSocketConnection,
         thisPlayer: Player,
-        receivedMessage: ClientSocketMessage.PlayerChangeReadinessRequest
+        receivedMessage: ClientSocketMessage.PlayerChangeReadiness
     ) {
         val readinessState: Boolean = receivedMessage.state
         thisPlayer.setReadinessState(readinessState)
-        playerMap.filter { it.key != thisConnection }.forEach { (connection, _) ->
-            connection.sendServerSocketMessage(
-                ServerSocketMessage.PlayerChangeReadinessResponse(
-                    playerId = thisPlayer.index, state = readinessState
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerChangeReadiness(playerId = thisPlayer.index, state = readinessState)
                 )
-            )
-        }
+            }
     }
 
     suspend fun handlePlayerLeavingRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
-        playerMap.filter { it.key != thisConnection }.forEach { (connection, _) ->
-            connection.sendServerSocketMessage(
-                ServerSocketMessage.PlayerLeavingResponse(playerId = thisPlayer.index)
-            )
-        }
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerLeaving(playerId = thisPlayer.index)
+                )
+            }
     }
 
     /**
@@ -187,7 +191,9 @@ class Game(
         if (areAllPlayersReady()) {
             gameStatus = GameStatus.RUNNING
             startGame()
+            notifyAllAboutGameStart()
 
+            // GAME IS RUNNING
             broadcastStateThread(webSocket)
             runEngineIterationThread(webSocket)
             quizQuestionsThread(webSocket)
@@ -196,6 +202,15 @@ class Game(
         }
 
 
+    }
+
+    private suspend fun notifyAllAboutGameStart() {
+        playerMap
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.GameStarted(0)
+                )
+            }
     }
 
     suspend fun handleHostDTO(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostDTO) {
@@ -282,7 +297,7 @@ class Game(
                 endGameIfPossible()
                 playerMap.forEach { (connection, _) ->
                     connection.sendServerSocketMessage(
-                        ServerSocketMessageParser.gameToGameState(this@Game)
+                        RestParser.gameToGameState(this@Game)
                     )
                 }
                 delay(CLIENT_REFRESH_FREQUENCY)  // delay should be used from kotlinx.coroutines

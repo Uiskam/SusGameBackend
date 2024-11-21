@@ -4,10 +4,9 @@ import edu.agh.susgame.back.net.Packet
 import edu.agh.susgame.dto.socket.server.ServerDTO
 
 class Server(
-    index: Int,
-    coordinates: Pair<Int, Int> = Pair(0, 0)
-) : Receiving(index) {
-
+    override val index: Int,
+    override val coordinates: Pair<Int, Int>,
+) : Receiving() {
     private var packetsReceived = 0 // Variable representing the progress of the game.
 
     /**
@@ -36,10 +35,8 @@ class Server(
      */
     fun getPacketsReceived(): Int = packetsReceived
 
-    fun toDTO(): ServerDTO {
-        return ServerDTO(
-            id = index,
-            packetsReceived = packetsReceived
-        )
-    }
+    fun toDTO(): ServerDTO = ServerDTO(
+        id = index,
+        packetsReceived = packetsReceived
+    )
 }

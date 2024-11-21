@@ -15,10 +15,10 @@ import edu.agh.susgame.dto.socket.server.RouterDTO
  * @param bufferSize Size of the buffer in the router.
  */
 class Router(
-    index: Int,
+    override val index: Int,
+    override val coordinates: Pair<Int, Int>,
     private var bufferSize: Int,
-    coordinates: Pair<Int, Int> = Pair(0, 0)
-) : Receiving(index) {
+) : Receiving() {
 
     // Input buffer containing the packets received in a queue for every neighbor.
     private val inputBuffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()

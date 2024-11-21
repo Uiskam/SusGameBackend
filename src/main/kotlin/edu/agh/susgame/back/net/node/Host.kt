@@ -7,11 +7,12 @@ import edu.agh.susgame.config.PLAYER_MAX_PACKETS_PER_TICK
 import edu.agh.susgame.dto.socket.server.HostDTO
 
 class Host(
-    index: Int,
+    override val index: Int,
+    override val coordinates: Pair<Int, Int>,
     private val player: Player,
     private var maxPacketsPerTick: Int = PLAYER_DEFAULT_PACKETS_PER_TICK,
     private var packetsSentThisTick: Int = 0
-) : Node(index) {
+) : Node() {
 
     private var route: List<Node>? = null
     private var firstNode: Node? = null // Node that the player is sending packets to

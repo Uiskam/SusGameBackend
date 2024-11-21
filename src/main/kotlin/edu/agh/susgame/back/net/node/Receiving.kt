@@ -2,10 +2,7 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Packet
 
-abstract class Receiving(
-    index: Int
-) : Node(index) {
-
+abstract class Receiving : Node() {
     // Pointer on last processed neighbour index for load balancing
     internal var pointer: Int = 0
 
@@ -19,13 +16,18 @@ abstract class Receiving(
      * Updates the packet route by popping the next node.
      */
     override fun collectPackets() {
-        val bandwidthLeft =
-            neighbors.mapNotNull { it.value.getWeight() }
-                .toMutableList()  // List representing how many packets can be sent using every edge in current iteration.
+        /**
+         * List representing how many packets can be sent using every edge in current iteration.
+         */
+        val bandwidthLeft = neighbors.mapNotNull { it.value.getWeight() }.toMutableList()
         val neighborList = neighbors.keys.toList()
 
-        var noInputCounter =
-            0 // Counter checking how many neighbors did not send the packet. If the value grows to `numNeighbors` it means, that there are no packets directed to this node.
+        /**
+         * Counter checking how many neighbors did not send the packet. If the value grows to `numNeighbors` it means,
+         * that there are no packets directed to this node.
+         */
+        var noInputCounter = 0
+
         while (spaceLeft > 0) {
 
             noInputCounter++

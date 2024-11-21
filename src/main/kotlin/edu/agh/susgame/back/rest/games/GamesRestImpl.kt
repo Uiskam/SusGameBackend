@@ -7,6 +7,7 @@ import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.socket.common.GameStatus
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -39,39 +40,39 @@ class GamesRestImpl : GamesRest {
 
     private val nextGameId: AtomicInteger = AtomicInteger(gameStorage.size())
 
-    override fun getAllGames(): CompletableFuture<GetAllGamesApiResult> {
-        return CompletableFuture.supplyAsync {
-            GetAllGamesApiResult.Success(gameStorage.getReturnableData())
-        }
+    override fun getAllGames(): CompletableFuture<GetAllGamesApiResult> = CompletableFuture.supplyAsync {
+        GetAllGamesApiResult.Success(gameStorage.getReturnableData())
     }
 
-    override fun getGame(gameId: LobbyId): CompletableFuture<GetGameApiResult> {
-        return CompletableFuture.supplyAsync {
-            gameStorage.findGameById(gameId.value)?.let { game ->
-                GetGameApiResult.Success(game.getDataToReturn())
-            } ?: GetGameApiResult.DoesNotExist
-        }
+    override fun getGame(gameId: LobbyId): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
+        gameStorage.findGameById(gameId.value)?.let { game ->
+            GetGameApiResult.Success(game.getDataToReturn())
+        } ?: GetGameApiResult.DoesNotExist
     }
 
     override fun createGame(
         gameName: String,
         maxNumberOfPlayers: Int,
         gamePin: String?
-    ): CompletableFuture<CreateGameApiResult> {
-        return CompletableFuture.supplyAsync {
-            gameStorage.findGameByName(gameName)?.let {
-                CreateGameApiResult.NameAlreadyExists
-            } ?: run {
-                val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin)
-                gameStorage.add(newGame)
-                // TODO GAME-74 Suggestion: Propagate the usage of `LobbyId` on backend
-                CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
-            }
+    ): CompletableFuture<CreateGameApiResult> = CompletableFuture.supplyAsync {
+        gameStorage.findGameByName(gameName)?.let {
+            CreateGameApiResult.NameAlreadyExists
+        } ?: run {
+            val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin)
+            gameStorage.add(newGame)
+            // TODO GAME-74 Suggestion: Propagate the usage of `LobbyId` on backend
+            CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
         }
     }
 
-    override fun getGameMap(gameId: LobbyId): CompletableFuture<GetGameMapApiResult> {
-        TODO()
+    override fun getGameMap(gameId: LobbyId): CompletableFuture<GetGameMapApiResult> = CompletableFuture.supplyAsync {
+        val game = gameStorage.findGameById(gameId.value) ?: return@supplyAsync GetGameMapApiResult.GameDoesNotExist
+
+        if (game.getGameStatus() != GameStatus.RUNNING) return@supplyAsync GetGameMapApiResult.GameNotYetStarted
+
+        val netGraph = game.netGraph
+
+        return@supplyAsync RestParser.netGraphToGetGameMapApiResult(netGraph)
     }
 
     fun findGameById(gameId: Int): Game? = gameStorage.findGameById(gameId)
