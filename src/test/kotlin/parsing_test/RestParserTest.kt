@@ -56,9 +56,7 @@ class RestParserTest : TestUtils {
         graph.addEdge(node2, node3, edge2) // router2 - router1
         graph.addEdge(node3, node4, edge3) // router2 - server
 
-        val result = RestParser.netGraphToGetGameMapApiResult(graph)
-
-        assertEquals(result.responseCode, 200)
+        val result = RestParser.netGraphToGetGameMapDTO(graph)
 
         assertEquals(result.nodes.size, 4)
         assertContains(result.nodes, HostDTO(id = 0, coordinates = coordinates1))

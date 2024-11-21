@@ -2,7 +2,7 @@ package edu.agh.susgame.back.rest.games
 
 import edu.agh.susgame.back.models.Game
 import edu.agh.susgame.back.net.NetGraph
-import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
+import edu.agh.susgame.dto.rest.model.GameMapDTO
 import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO
 import edu.agh.susgame.dto.rest.model.GameMapNodeDTO
 import edu.agh.susgame.dto.socket.ServerSocketMessage
@@ -20,7 +20,7 @@ object RestParser {
         gameStatus = game.getGameStatus(),
     )
 
-    fun netGraphToGetGameMapApiResult(netGraph: NetGraph): GetGameMapApiResult.Success {
+    fun netGraphToGetGameMapDTO(netGraph: NetGraph): GameMapDTO {
         val server = GameMapNodeDTO.Server(
             id = netGraph.getServer().index,
             coordinates = netGraph.getServer().getCoordinates(),
@@ -41,7 +41,7 @@ object RestParser {
             )
         }
 
-        return GetGameMapApiResult.Success(
+        return GameMapDTO(
             nodes = hosts + routers + server,
             edges = netGraph.getEdges().toList().map { edge ->
                 val (fromNodeId, toNodeId) = edge.connectedNodesIds
