@@ -1,4 +1,4 @@
-package edu.agh.susgame.back.app
+package edu.agh.susgame.back
 
 import edu.agh.susgame.back.presentation.HttpErrorResponseBody
 import edu.agh.susgame.back.services.plugins.configureRouting
