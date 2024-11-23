@@ -2,9 +2,7 @@ package edu.agh.susgame.back.services.rest
 
 import edu.agh.susgame.back.domain.models.Game
 import edu.agh.susgame.back.domain.net.NetGraph
-import edu.agh.susgame.dto.rest.model.GameMapDTO
-import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO
+import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 
 
@@ -20,37 +18,31 @@ object RestParser {
         gameStatus = game.getGameStatus(),
     )
 
-    fun netGraphToGetGameMapDTO(netGraph: NetGraph): GameMapDTO {
-        val server = GameMapNodeDTO.Server(
+    fun netGraphToGetGameMapDTO(netGraph: NetGraph): GameMapDTO = GameMapDTO(
+        server = GameMapServerDTO(
             id = netGraph.getServer().index,
             coordinates = netGraph.getServer().getCoordinates(),
-        )
-
-        val hosts = netGraph.getHostsList().map { host ->
-            GameMapNodeDTO.Host(
+        ),
+        hosts = netGraph.getHostsList().map { host ->
+            GameMapHostDTO(
                 id = host.index,
                 coordinates = host.getCoordinates(),
             )
-        }
-
-        val routers = netGraph.getRoutersList().map { router ->
-            GameMapNodeDTO.Router(
+        },
+        routers = netGraph.getRoutersList().map { router ->
+            GameMapRouterDTO(
                 id = router.index,
                 coordinates = router.getCoordinates(),
                 bufferSize = router.getBufferSize(),
             )
-        }
-
-        return GameMapDTO(
-            nodes = hosts + routers + server,
-            edges = netGraph.getEdges().toList().map { edge ->
-                val (fromNodeId, toNodeId) = edge.connectedNodesIds
-                GameMapEdgeDTO(
-                    from = fromNodeId,
-                    to = toNodeId,
-                    weight = edge.getWeight()
-                )
-            },
-        )
-    }
+        },
+        edges = netGraph.getEdges().toList().map { edge ->
+            val (fromNodeId, toNodeId) = edge.connectedNodesIds
+            GameMapEdgeDTO(
+                from = fromNodeId,
+                to = toNodeId,
+                weight = edge.getWeight()
+            )
+        },
+    )
 }
