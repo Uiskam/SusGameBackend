@@ -1,7 +1,9 @@
 package edu.agh.susgame.back.net
 
+import edu.agh.susgame.config.EDGE_DEFAULT_UPGRADE_COST
+import edu.agh.susgame.config.nextEdgeUpgradeCost
+import edu.agh.susgame.config.nextEdgeWeight
 import edu.agh.susgame.dto.socket.server.EdgeDTO
-import edu.agh.susgame.config.*
 
 /**
  * Represents an edge in a graph.
@@ -13,8 +15,9 @@ import edu.agh.susgame.config.*
 class Edge(
     val index: Int,
     private var weight: Int,
+    val connectedNodesIds: Pair<Int, Int>,
     var transportedPacketsThisTick: Int = 0,
-    private var upgradeCost: Int = EDGE_DEFAULT_UPGRADE_COST
+    private var upgradeCost: Int = EDGE_DEFAULT_UPGRADE_COST,
 ) {
 
     fun getWeight() = weight

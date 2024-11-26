@@ -2,6 +2,7 @@ package edu.agh.susgame.back.net.node
 
 import edu.agh.susgame.back.net.Edge
 import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.dto.rest.model.Coordinates
 
 
 /**
@@ -9,12 +10,18 @@ import edu.agh.susgame.back.net.Packet
  *
  * @param index Index of the node. Supposed to be unique.
  */
-abstract class Node (
-    internal val index: Int
-) {
+abstract class Node {
+    /**
+     * Index of the node. Supposed to be unique.
+     */
+    internal abstract val index: Int
+    abstract val coordinates: Pair<Int, Int>
 
     // LinkedHashMap for a fixed order for use in Round Robin algorithm
     internal val neighbors: LinkedHashMap<Node, Edge> = linkedMapOf()
+
+    fun getCoordinates(): Coordinates =
+        coordinates.let { (x, y) -> Coordinates(x, y) }
 
     /**
      * Adds a new neighbor with the edge.
@@ -22,7 +29,7 @@ abstract class Node (
      * @param node The new neighbor.
      * @param edge Edge connecting this node and the other one.
      */
-    public open fun addNeighbour(node: Node, edge: Edge) {
+    open fun addNeighbour(node: Node, edge: Edge) {
         neighbors[node] = edge
     }
 
@@ -31,8 +38,8 @@ abstract class Node (
      *
      * @return HashSet of the nodes
      */
-    public fun getNeighborsSet(): HashSet<Node> {
-        return HashSet( neighbors.keys )
+    fun getNeighborsSet(): HashSet<Node> {
+        return HashSet(neighbors.keys)
     }
 
     /**
@@ -40,7 +47,7 @@ abstract class Node (
      *
      * @return Size of neighbors list.
      */
-    public fun countNeighbours(): Int = neighbors.size
+    fun countNeighbours(): Int = neighbors.size
 
     /**
      * Abstract function accepting the packets from neighbors.

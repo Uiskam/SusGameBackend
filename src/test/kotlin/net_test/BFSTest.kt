@@ -1,13 +1,13 @@
 package net_test
 
-import edu.agh.susgame.back.net.*
-import edu.agh.susgame.back.net.node.Host
-import edu.agh.susgame.back.net.node.Router
-import edu.agh.susgame.back.net.node.Server
+import edu.agh.susgame.back.net.BFS
+import edu.agh.susgame.back.net.NetGraph
+import edu.agh.susgame.back.net.Packet
+import edu.agh.susgame.back.net.Player
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class BFSTest {
+class BFSTest : TestUtils {
 
     private val player0 = Player(0, "player0")
     private val player1 = Player(1, "player1")
@@ -21,22 +21,22 @@ class BFSTest {
 
         // Nodes
         //hosts
-        val host0 = Host(0, player0)
-        val host1 = Host(1, player1)
-        val host2 = Host(2, player2)
-        val host3 = Host(3, player3)
-        val router4 = Router(4, 6) // router
-        val router5 = Router(5, 5) // router
-        val server6 = Server(6) // server
+        val host0 = newTestHost(0, player0)
+        val host1 = newTestHost(1, player1)
+        val host2 = newTestHost(2, player2)
+        val host3 = newTestHost(3, player3)
+        val router4 = newTestRouter(4, 6) // router
+        val router5 = newTestRouter(5, 5) // router
+        val server6 = newTestServer(6) // server
 
         // Edges
-        val edge0 = Edge(0, 4)
-        val edge1 = Edge(1, 2)
-        val edge2 = Edge(2, 10)
-        val edge3 = Edge(3, 10)
-        val edge4 = Edge(4, 5)
-        val edge5 = Edge(5, 4)
-        val edge6 = Edge(6, 10)
+        val edge0 = newTestEdge(0, 4)
+        val edge1 = newTestEdge(1, 2)
+        val edge2 = newTestEdge(2, 10)
+        val edge3 = newTestEdge(3, 10)
+        val edge4 = newTestEdge(4, 5)
+        val edge5 = newTestEdge(5, 4)
+        val edge6 = newTestEdge(6, 10)
 
 
         // Add elements to the structure
@@ -115,20 +115,20 @@ class BFSTest {
         //This is the same graph as in collectPacketsFromMultiplePlayersTest
         // Nodes
         //hosts
-        val host0 = Host(0, player0)
-        val host1 = Host(1, player1)
-        val host2 = Host(2, player2)
-        val router3 = Router(3, 6) // router
-        val router4= Router(4, 5) // router
-        val server5 = Server(5) // server
+        val host0 = newTestHost(0, player0)
+        val host1 = newTestHost(1, player1)
+        val host2 = newTestHost(2, player2)
+        val router3 = newTestRouter(3, 6) // router
+        val router4 = newTestRouter(4, 5) // router
+        val server5 = newTestServer(5) // server
 
         // Edges
-        val edge0 = Edge(6, 4)
-        val edge1 = Edge(7, 2)
-        val edge2 = Edge(8, 5) // change compared to collectPacketsFromMultiplePlayersTest
-        val edge3 = Edge(9, 10)
-        val edge4 = Edge(10, 5)
-        val edge5 = Edge(11, 4)
+        val edge0 = newTestEdge(6, 4)
+        val edge1 = newTestEdge(7, 2)
+        val edge2 = newTestEdge(8, 5) // change compared to collectPacketsFromMultiplePlayersTest
+        val edge3 = newTestEdge(9, 10)
+        val edge4 = newTestEdge(10, 5)
+        val edge5 = newTestEdge(11, 4)
 
         // Add elements to the structure
         graph.addNode(host0)

@@ -58,6 +58,7 @@ class NetGraph {
                 }
                 server = node
             }
+
             else -> {
                 throw IllegalArgumentException("Node type not recognized $node")
             }
@@ -72,7 +73,7 @@ class NetGraph {
     fun getRoutersList(): List<Router> = routers.values.toList()
 
 
-    fun getTotalPacketsDelivered () = server!!.getPacketsReceived()
+    fun getTotalPacketsDelivered() = server!!.getPacketsReceived()
 
     /**
      * Connects two nodes in the graph with an edge.

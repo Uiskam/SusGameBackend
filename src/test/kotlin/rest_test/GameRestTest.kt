@@ -1,9 +1,6 @@
 package rest_test
 
 
-import edu.agh.susgame.back.main
-import edu.agh.susgame.back.module
-import edu.agh.susgame.dto.rest.games.model.GameCreationRequest
 import edu.agh.susgame.dto.rest.model.Lobby
 import edu.agh.susgame.dto.rest.model.LobbyId
 import io.ktor.client.*
@@ -11,10 +8,10 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.testing.*
-import kotlin.test.*
 import kotlinx.serialization.json.Json
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 
 class GameRestTest {
@@ -38,14 +35,12 @@ class GameRestTest {
         val client = createClient {
             install(HttpClient(CIO))
         }
-        var response: HttpResponse
+        val response1 = client.get("/games/2137")
+        assertEquals(HttpStatusCode.NotFound, response1.status)
 
-        response = client.get("/games/2137")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-
-        response = client.get("/games/0")
-        assertEquals(HttpStatusCode.OK, response.status)
-        val responseBody = response.bodyAsText()
+        val response2 = client.get("/games/0")
+        assertEquals(HttpStatusCode.OK, response2.status)
+        val responseBody = response2.bodyAsText()
         val lobby = Json.decodeFromString<Lobby>(responseBody)
         val expectedLobby = Lobby(
             LobbyId(0),
@@ -81,6 +76,26 @@ class GameRestTest {
         val lobbyList: List<Lobby> = Json.decodeFromString(responseBody)
         assertEquals(3, lobbyList.size)
         assertEquals(1, lobbyList[0].id.value)
+    }
+
+    @Test
+    fun testGameMap() = testApplication {
+        val client = createClient {
+            install(HttpClient(CIO))
+        }
+
+        // Game not yet started
+        val response1 = client.get("/games/map/0")
+        assertEquals(HttpStatusCode.BadRequest, response1.status)
+
+        // Game doesn't exist
+        val response2 = client.get("/games/map/420")
+        assertEquals(HttpStatusCode.NotFound, response2.status)
+
+        // TODO GAME-108 Do the real testing by establishing a websocket connection on
+        //  `WEBSOCKET ws://localhost/games/join`
+        // val response3 = ...
+        // assertEquals(HttpStatusCode.OK, response3.status)
     }
 
 }

@@ -1,21 +1,20 @@
 package net_test
 
-import edu.agh.susgame.back.net.*
-import edu.agh.susgame.back.net.node.*
-
+import edu.agh.susgame.back.net.NetGraph
+import edu.agh.susgame.back.net.Player
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 
-class GraphTest {
+class GraphTest : TestUtils {
 
     /**
      * Tests if the graph is properly initialized.
      */
     @Test
-    fun `relations between structure elements`(){
+    fun `relations between structure elements`() {
         val graph = NetGraph()
 
         // Create graph elements
@@ -23,19 +22,19 @@ class GraphTest {
 
         // nodes
         // host
-        val node0 = Host(0, player0)
+        val node0 = newTestHost(0, player0)
         //routers
-        val node1 = Router(1, 5)
-        val node2 = Router(2, 5)
+        val node1 = newTestRouter(1, 5)
+        val node2 = newTestRouter(2, 5)
         // server
-        val node3 = Server(3)
+        val node3 = newTestServer(3)
 
 
         // edges
-        val edge0 = Edge(0, 5)
-        val edge1 = Edge(1, 5)
-        val edge2 = Edge(2, 5)
-        val edge3 = Edge(3, 5)
+        val edge0 = newTestEdge(0, 5)
+        val edge1 = newTestEdge(1, 5)
+        val edge2 = newTestEdge(2, 5)
+        val edge3 = newTestEdge(3, 5)
 
         // Add elements to the structure
         graph.addNode(node1)
