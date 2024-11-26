@@ -1,21 +1,21 @@
 package net_test.parsing_test
 
-import edu.agh.susgame.back.net.Edge
-import edu.agh.susgame.back.net.NetGraph
-import edu.agh.susgame.back.net.Player
-import edu.agh.susgame.back.net.node.Host
-import edu.agh.susgame.back.net.node.Router
-import edu.agh.susgame.back.net.node.Server
-import edu.agh.susgame.back.rest.games.RestParser
+import edu.agh.susgame.back.domain.net.Edge
+import edu.agh.susgame.back.domain.net.NetGraph
+import edu.agh.susgame.back.domain.net.Player
+import edu.agh.susgame.back.domain.net.node.Host
+import edu.agh.susgame.back.domain.net.node.Router
+import edu.agh.susgame.back.domain.net.node.Server
+import edu.agh.susgame.back.services.rest.RestParser
 import edu.agh.susgame.dto.rest.model.Coordinates
 import net_test.TestUtils
 import org.junit.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import edu.agh.susgame.dto.rest.model.GameMapEdgeDTO as EdgeDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Host as HostDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Router as RouterDTO
-import edu.agh.susgame.dto.rest.model.GameMapNodeDTO.Server as ServerDTO
+import edu.agh.susgame.dto.rest.model.GameMapHostDTO as HostDTO
+import edu.agh.susgame.dto.rest.model.GameMapRouterDTO as RouterDTO
+import edu.agh.susgame.dto.rest.model.GameMapServerDTO as ServerDTO
 
 class RestParserTest : TestUtils {
     @Test
@@ -58,11 +58,14 @@ class RestParserTest : TestUtils {
 
         val result = RestParser.netGraphToGetGameMapDTO(graph)
 
-        assertEquals(result.nodes.size, 4)
-        assertContains(result.nodes, HostDTO(id = 0, coordinates = coordinates1))
-        assertContains(result.nodes, RouterDTO(id = 1, coordinates = coordinates2, bufferSize = 5))
-        assertContains(result.nodes, RouterDTO(id = 2, coordinates = coordinates3, bufferSize = 2))
-        assertContains(result.nodes, ServerDTO(id = 3, coordinates = coordinates4))
+        assertEquals(result.hosts.size, 1)
+        assertContains(result.hosts, HostDTO(id = 0, coordinates = coordinates1, playerId = player0.index))
+
+        assertEquals(result.routers.size, 2)
+        assertContains(result.routers, RouterDTO(id = 1, coordinates = coordinates2, bufferSize = 5))
+        assertContains(result.routers, RouterDTO(id = 2, coordinates = coordinates3, bufferSize = 2))
+
+        assertEquals(result.server, ServerDTO(id = 3, coordinates = coordinates4))
 
         assertEquals(result.edges.size, 4)
         assertContains(result.edges, EdgeDTO(from = 0, to = 1, weight = 32))

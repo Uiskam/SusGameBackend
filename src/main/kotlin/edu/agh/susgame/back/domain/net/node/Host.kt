@@ -1,7 +1,7 @@
-package edu.agh.susgame.back.net.node
+package edu.agh.susgame.back.domain.net.node
 
-import edu.agh.susgame.back.net.Packet
-import edu.agh.susgame.back.net.Player
+import edu.agh.susgame.back.domain.net.Packet
+import edu.agh.susgame.back.domain.net.Player
 import edu.agh.susgame.config.PLAYER_DEFAULT_PACKETS_PER_TICK
 import edu.agh.susgame.config.PLAYER_MAX_PACKETS_PER_TICK
 import edu.agh.susgame.dto.socket.server.HostDTO
@@ -19,6 +19,7 @@ class Host(
 
     private var numPacketsSent: Int = 0 // How many packets has the host already sent.
 
+    fun getPlayer(): Player = player
     fun getMaxPacketsPerTick(): Int = maxPacketsPerTick
     fun setMaxPacketsPerTick(packetsPerTick: Int) {
         if (packetsPerTick < 0) {
