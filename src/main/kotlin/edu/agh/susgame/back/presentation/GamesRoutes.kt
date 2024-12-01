@@ -165,6 +165,12 @@ fun Route.gameRouting() {
                             receivedMessage
                         )
 
+                        is ClientSocketMessage.PlayerChangeColor -> game.handlePlayerChangeColor(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
+
                         is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(
                             thisConnection,
                             thisPlayer
@@ -179,7 +185,9 @@ fun Route.gameRouting() {
 
                         is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
-                        is ClientSocketMessage.HostDTO -> game.handleHostDTO(thisConnection, receivedMessage)
+                        is ClientSocketMessage.HostRouteDTO -> game.handleHostRoute(thisConnection, receivedMessage)
+
+                        is ClientSocketMessage.HostFlowDTO -> game.handleHostFlow(thisConnection, receivedMessage)
 
                         is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
                             thisConnection,

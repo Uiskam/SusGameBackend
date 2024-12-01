@@ -13,15 +13,16 @@ class Player(
     val index: Int,
     val name: String,
     var isReady: Boolean = false,
-    private val colorHex: Long = Random.nextLong(0, 0xFFFFFF),
     private var currentMoney: Int = PLAYER_BASE_MONEY,
     var activeQuestionId: Int = -1
 ) {
+
+    private var color: ULong = 0u
+
     fun toREST(): PlayerREST {
         return PlayerREST(
             nickname = PlayerNickname(name),
             id = PlayerId(index),
-            colorHex = colorHex
         )
     }
 
@@ -54,6 +55,10 @@ class Player(
      */
     fun setReadinessState(state: Boolean) {
         isReady = state
+    }
+
+    fun setColor(color: ULong) {
+        this.color = color
     }
 
 }

@@ -4,6 +4,7 @@ import edu.agh.susgame.back.domain.net.BFS
 import edu.agh.susgame.back.domain.net.NetGraph
 import edu.agh.susgame.back.domain.net.Player
 import edu.agh.susgame.back.domain.net.build.Generator
+import edu.agh.susgame.back.domain.net.node.Host
 import edu.agh.susgame.back.services.rest.RestParser
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
@@ -150,6 +151,18 @@ class Game(
             }
     }
 
+    suspend fun handlePlayerChangeColor(thisConnection: GamesWebSocketConnection, thisPlayer: Player, receivedMessage: ClientSocketMessage.PlayerChangeColor) {
+        val color: ULong = receivedMessage.color
+        thisPlayer.setColor(color)
+        playerMap
+            .filter { it.key != thisConnection }
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.PlayerChangeColor(playerId = thisPlayer.index, color = color)
+                )
+            }
+    }
+
     suspend fun handlePlayerLeavingRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
         playerMap
             .filter { it.key != thisConnection }
@@ -213,34 +226,37 @@ class Game(
             }
     }
 
-    suspend fun handleHostDTO(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostDTO) {
-        if (!gameStatus.equals(GameStatus.RUNNING)) {
-            sendErrorMessage("Invalid game status on server: Game is not running")
-            return
-        }
-        val host = netGraph.getHost(receivedMessage.id)
-
-        if (host == null) {
-            sendErrorMessage("There is no host with id of ${receivedMessage.id}")
-            return
-        }
-
-        try {
-            val route = receivedMessage.packetPath.flatMap { nodeId ->
+    suspend fun handleHostRoute(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostRouteDTO) {
+        val host = safeRetrieveHost(receivedMessage.id)
+        val route = receivedMessage.packetPath.flatMap { nodeId ->
                 when (val node = netGraph.getNodeById(nodeId)) {
                     null -> emptyList()
                     else -> listOf(node)
                 }
             }
             host.setRoute(route)
+    }
 
-            host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
-        } catch (e: IllegalArgumentException) {
-            thisConnection.sendServerSocketMessage(
-                ServerSocketMessage.ServerError(e.message ?: "Unknown error")
-            )
+    suspend fun handleHostFlow(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostFlowDTO) {
+        val host = safeRetrieveHost(receivedMessage.id)
+        host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
+    }
+
+    private suspend fun safeRetrieveHost(id: Int): Host {
+        if (gameStatus != GameStatus.RUNNING) {
+            val errorMessage = "Invalid game status on server: Game is not running"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+        val host = netGraph.getHost(id)
+
+        if (host == null) {
+            val errorMessage = "There is no host with id of $id"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
         }
 
+        return host
     }
 
     suspend fun handleUpgradeDTO(
