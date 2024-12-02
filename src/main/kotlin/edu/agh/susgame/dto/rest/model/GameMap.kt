@@ -14,6 +14,10 @@ data class GameMapDTO(
     val hosts: List<GameMapHostDTO>,
     val routers: List<GameMapRouterDTO>,
     val edges: List<GameMapEdgeDTO>,
+    /**
+     * Number of packets that server must receive to win.
+     */
+    val gameGoal: Int,
 )
 
 @Serializable
