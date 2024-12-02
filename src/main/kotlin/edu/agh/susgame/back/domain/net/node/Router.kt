@@ -111,10 +111,10 @@ class Router(
      * Upgrades the buffer capacity and increases the upgrade cost.
      */
     fun upgradeBuffer(player: Player) {
-        if (player.getCurrentMoney() < upgradeCost) {
+        if (!player.deductMoney(upgradeCost)) {
             throw IllegalStateException("Player does not have enough money to upgrade the buffer")
         }
-        player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
+
         val nextBufferSize = nextRouterBufferSize(bufferSize)
         spaceLeft += nextBufferSize - bufferSize
         bufferSize = nextBufferSize

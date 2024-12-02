@@ -31,10 +31,9 @@ class Edge(
      * Increases the weight and upgrade cost of the edge by a predefined coefficients.
      */
     fun upgradeWeight(player: Player) {
-        if (player.getCurrentMoney() < upgradeCost) {
+        if (!player.deductMoney(upgradeCost)) {
             throw IllegalStateException("Player does not have enough money to upgrade the edge")
         }
-        player.setCurrentMoney(player.getCurrentMoney() - upgradeCost)
         weight = nextEdgeWeight(weight)
         upgradeCost = nextEdgeUpgradeCost(upgradeCost)
     }

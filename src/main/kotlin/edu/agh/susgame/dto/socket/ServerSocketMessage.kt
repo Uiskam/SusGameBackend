@@ -89,6 +89,12 @@ sealed class ServerSocketMessage {
         val state: Boolean
     ) : ServerSocketMessage()
 
+    @Serializable
+    data class PlayerChangeColor(
+        val playerId: Int,
+        val color: ULong
+    ) : ServerSocketMessage()
+
     /**
      * Used for informing other players about other player leaving the lobby
      */
