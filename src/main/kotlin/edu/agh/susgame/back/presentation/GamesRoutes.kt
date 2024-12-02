@@ -96,7 +96,8 @@ fun Route.gameRouting() {
             call.respond(
                 status = result.let { HttpStatusCode.fromValue(it.responseCode) },
                 message = when (result) {
-                    is CreateGameApiResult.Success -> result.createdLobbyId
+                    is CreateGameApiResult.Success -> GameCreationApiResponse(result.createdLobbyId)
+
                     CreateGameApiResult.NameAlreadyExists ->
                         HttpErrorResponseBody("Game with name ${request.gameName} already exists")
 
