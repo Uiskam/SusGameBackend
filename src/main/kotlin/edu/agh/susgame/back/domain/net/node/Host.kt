@@ -11,13 +11,13 @@ class Host(
     override val coordinates: Pair<Int, Int>,
     private val player: Player,
     private var maxPacketsPerTick: Int = PLAYER_DEFAULT_PACKETS_PER_TICK,
-    private var packetsSentThisTick: Int = 0
 ) : Node() {
 
     private var route: List<Node>? = null
     private var firstNode: Node? = null // Node that the player is sending packets to
 
     private var numPacketsSent: Int = 0 // How many packets has the host already sent.
+    private var packetsSentThisTick: Int = 0 // How many packets has the host sent in this time unit.
 
     fun getPlayer(): Player = player
     fun getMaxPacketsPerTick(): Int = maxPacketsPerTick

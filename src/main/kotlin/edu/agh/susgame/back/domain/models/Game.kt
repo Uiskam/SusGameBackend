@@ -73,8 +73,8 @@ class Game(
 
     fun areAllPlayersReady() = playerMap.values.all { it.isReady }
 
-    /*
-    * Starts the game by generating the graph, setting the start time and changing the game status to running
+    /**
+     * Starts the game by generating the graph, setting the start time and changing the game status to running
      */
     fun startGame(graph: NetGraph? = null) {
         netGraph = graph ?: Generator.getGraph(playerMap.values.toList())
@@ -117,7 +117,7 @@ class Game(
         return QuizQuestions[questionId]
     }
 
-    /**
+    /*
      * ##################################################
      * HANDLERS
      * ##################################################
@@ -140,6 +140,12 @@ class Game(
         thisPlayer: Player,
         receivedMessage: ClientSocketMessage.PlayerChangeReadiness
     ) {
+
+        if (gameStatus != GameStatus.WAITING) {
+            sendErrorMessage("Invalid game status on server")
+            return
+        }
+
         val readinessState: Boolean = receivedMessage.state
         thisPlayer.setReadinessState(readinessState)
         playerMap
@@ -151,7 +157,17 @@ class Game(
             }
     }
 
-    suspend fun handlePlayerChangeColor(thisConnection: GamesWebSocketConnection, thisPlayer: Player, receivedMessage: ClientSocketMessage.PlayerChangeColor) {
+    suspend fun handlePlayerChangeColor(
+        thisConnection: GamesWebSocketConnection,
+        thisPlayer: Player,
+        receivedMessage: ClientSocketMessage.PlayerChangeColor
+    ) {
+
+        if (gameStatus != GameStatus.WAITING) {
+            sendErrorMessage("Invalid game status on server")
+            return
+        }
+
         val color: ULong = receivedMessage.color
         thisPlayer.setColor(color)
         playerMap
@@ -173,7 +189,7 @@ class Game(
             }
     }
 
-    /**
+    /*
      * Game handlers
      */
 
@@ -196,7 +212,7 @@ class Game(
             return
         }
 
-        if (!gameStatus.equals(GameStatus.WAITING)) {
+        if (gameStatus != GameStatus.WAITING) {
             sendErrorMessage("Invalid game status on server")
             return
         }
@@ -226,18 +242,24 @@ class Game(
             }
     }
 
-    suspend fun handleHostRoute(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostRouteDTO) {
+    suspend fun handleHostRoute(
+        thisConnection: GamesWebSocketConnection,
+        receivedMessage: ClientSocketMessage.HostRouteDTO
+    ) {
         val host = safeRetrieveHost(receivedMessage.id)
         val route = receivedMessage.packetPath.flatMap { nodeId ->
-                when (val node = netGraph.getNodeById(nodeId)) {
-                    null -> emptyList()
-                    else -> listOf(node)
-                }
+            when (val node = netGraph.getNodeById(nodeId)) {
+                null -> emptyList()
+                else -> listOf(node)
             }
-            host.setRoute(route)
+        }
+        host.setRoute(route)
     }
 
-    suspend fun handleHostFlow(thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.HostFlowDTO) {
+    suspend fun handleHostFlow(
+        thisConnection: GamesWebSocketConnection,
+        receivedMessage: ClientSocketMessage.HostFlowDTO
+    ) {
         val host = safeRetrieveHost(receivedMessage.id)
         host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
     }
@@ -262,7 +284,7 @@ class Game(
     suspend fun handleUpgradeDTO(
         thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.UpgradeDTO, thisPlayer: Player
     ) {
-        if (!gameStatus.equals(GameStatus.RUNNING)) {
+        if (gameStatus != GameStatus.RUNNING) {
             sendErrorMessage("Invalid game status on server: Game is not running")
             return
         }
@@ -290,7 +312,7 @@ class Game(
         }
     }
 
-    /**
+    /*
      * Other messages
      */
     suspend fun sendErrorMessage(errorMessage: String) {
@@ -301,7 +323,7 @@ class Game(
         }
     }
 
-    /**
+    /*
      * ##################################################
      * THREADS
      * ##################################################

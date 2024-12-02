@@ -201,7 +201,7 @@ fun Route.gameRouting() {
                             if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == player.activeQuestionId) {
                                 player.addMoneyForCorrectAnswer()
                             }
-                            
+
                             if (question.correctAnswer != receivedMessage.answer && receivedMessage.questionId == player.activeQuestionId) {
                                 player.activeQuestionId = -1
                             }

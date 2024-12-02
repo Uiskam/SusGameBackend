@@ -11,6 +11,7 @@ interface TestUtils {
         index = id,
         player = player,
         coordinates = MockCoordinates,
+        maxPacketsPerTick = 1000
     )
 
     fun newTestRouter(id: Int, bufferSize: Int): Router = Router(

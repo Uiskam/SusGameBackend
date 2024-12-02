@@ -7,7 +7,6 @@ import edu.agh.susgame.dto.rest.model.PlayerId
 import edu.agh.susgame.dto.rest.model.PlayerNickname
 import edu.agh.susgame.dto.rest.model.PlayerREST
 import edu.agh.susgame.dto.socket.server.PlayerDTO
-import kotlin.random.Random
 
 class Player(
     val index: Int,
@@ -36,6 +35,23 @@ class Player(
 
     fun setCurrentMoney(money: Int) {
         currentMoney = money
+    }
+
+    /**
+     * Checks if player has enough money.
+     */
+    private fun canAfford(cost: Int): Boolean = cost <= currentMoney
+
+    /**
+     * Checks if player can afford the upgrade and deducts money if it is possible.
+     * Retrieves true if the process is success., otherwise - false.
+     */
+    fun deductMoney(cost: Int): Boolean {
+        if (canAfford(cost)) {
+            currentMoney -= cost
+            return true
+        }
+        return false
     }
 
     /**
