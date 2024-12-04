@@ -22,6 +22,8 @@ class Player(
         return PlayerREST(
             nickname = PlayerNickname(name),
             id = PlayerId(index),
+            color = color,
+            readiness = isReady,
         )
     }
 
