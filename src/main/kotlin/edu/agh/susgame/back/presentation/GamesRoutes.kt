@@ -208,6 +208,9 @@ fun Route.gameRouting() {
                             }
 
                         }
+
+                        // TODO GAME-117 delete
+                        is ClientSocketMessage.FixRouterDTO -> TODO()
                     }
                 }
             } catch (e: Exception) {

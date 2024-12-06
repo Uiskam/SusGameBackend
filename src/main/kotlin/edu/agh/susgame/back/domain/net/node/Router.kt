@@ -103,7 +103,10 @@ class Router(
             id = index,
             bufferSize = bufferSize,
             spaceLeft = spaceLeft,
-            upgradeCost = upgradeCost
+            upgradeCost = upgradeCost,
+            // TODO GAME-117 delete
+            overheatLevel = 0,
+            isWorking = true,
         )
     }
 

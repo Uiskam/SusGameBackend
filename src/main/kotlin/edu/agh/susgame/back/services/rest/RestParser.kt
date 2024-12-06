@@ -46,6 +46,8 @@ object RestParser {
                 weight = edge.getWeight()
             )
         },
-        gameGoal = game.gameGoal
+        gameGoal = game.gameGoal,
+        // TODO GAME-117 delete
+        criticalBufferOverheatLevel = 10,
     )
 }
