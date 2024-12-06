@@ -19,6 +19,6 @@ data class PlayerNickname(val value: String)
 data class PlayerREST(
     val nickname: PlayerNickname,
     val id: PlayerId,
-    val color: ColorDTO,
+    val color: ColorDTO?,
     val readiness: Boolean,
 )

@@ -16,14 +16,13 @@ class Player(
     private var currentMoney: Int = PLAYER_BASE_MONEY,
     var activeQuestionId: Int = -1
 ) {
-
-    private var color: ULong = 123134432324uL
+    private var color: ULong? = null
 
     fun toREST(): PlayerREST {
         return PlayerREST(
             nickname = PlayerNickname(name),
             id = PlayerId(index),
-            color = ColorDTO(color.toString()),
+            color = color?.let { ColorDTO(it.toString()) },
             readiness = isReady,
         )
     }
@@ -79,5 +78,4 @@ class Player(
     fun setColor(color: ULong) {
         this.color = color
     }
-
 }

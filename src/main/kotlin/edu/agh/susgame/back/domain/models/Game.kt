@@ -25,9 +25,7 @@ class Game(
     val id: Int,
     val maxNumberOfPlayers: Int,
     val gamePin: String? = null,
-
-
-    ) {
+) {
 
     @Volatile
     private var gameStatus: GameStatus = GameStatus.WAITING
