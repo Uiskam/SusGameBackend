@@ -317,12 +317,25 @@ class Game(
             } else if (router != null) {
                 router.upgradeBuffer(thisPlayer)
             } else {
-                thisConnection.sendServerSocketMessage(
-                    ServerSocketMessage.ServerError(
-                        "There is neither an edge not a host with id of $deviceIdToUpgrade."
-                    )
-                )
+                sendErrorMessage("There is neither an edge not a host with id of $deviceIdToUpgrade.")
             }
+        } catch (e: IllegalStateException) {
+            thisConnection.sendServerSocketMessage(
+                ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+            )
+        }
+    }
+
+    suspend fun handleFixRouterDTO( thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.FixRouterDTO) {
+        if (gameStatus != GameStatus.RUNNING) {
+            sendErrorMessage("Invalid game status on server: Game is not running")
+            return
+        }
+
+        try {
+            val deviceIdToUpgrade = receivedMessage.deviceId
+            val router = netGraph.getRouter(deviceIdToUpgrade)
+            router?.fixBuffer() ?: sendErrorMessage("There is no host with id of $deviceIdToUpgrade")
         } catch (e: IllegalStateException) {
             thisConnection.sendServerSocketMessage(
                 ServerSocketMessage.ServerError(e.message ?: "Unknown error")

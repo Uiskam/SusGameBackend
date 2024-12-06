@@ -2,6 +2,7 @@ package edu.agh.susgame.back.services.rest
 
 import edu.agh.susgame.back.domain.models.Game
 import edu.agh.susgame.back.domain.net.NetGraph
+import edu.agh.susgame.config.CRITICAL_BUFFER_OVERHEAT_LEVEL
 import edu.agh.susgame.dto.rest.model.*
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 
@@ -47,7 +48,6 @@ object RestParser {
             )
         },
         gameGoal = game.gameGoal,
-        // TODO GAME-117 delete
-        criticalBufferOverheatLevel = 10,
+        criticalBufferOverheatLevel = CRITICAL_BUFFER_OVERHEAT_LEVEL
     )
 }
