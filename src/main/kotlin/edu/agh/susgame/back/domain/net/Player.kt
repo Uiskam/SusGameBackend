@@ -16,13 +16,13 @@ class Player(
     var activeQuestionId: Int = -1
 ) {
 
-    private var color: ULong = 0u
+    private var color: ULong = 123134432324u
 
     fun toREST(): PlayerREST {
         return PlayerREST(
             nickname = PlayerNickname(name),
             id = PlayerId(index),
-            color = color,
+            color = color.toLong(),
             readiness = isReady,
         )
     }
