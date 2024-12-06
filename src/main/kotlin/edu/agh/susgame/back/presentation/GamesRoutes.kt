@@ -8,6 +8,7 @@ import edu.agh.susgame.dto.rest.games.model.*
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
+import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -121,8 +122,11 @@ fun Route.gameRouting() {
         }
 
         webSocket("/join") {
+
             val gameId = call.request.queryParameters["gameId"]?.toIntOrNull()
             val playerName = call.request.queryParameters["playerName"]
+            val playerId = call.request.queryParameters["playerId"]?.toIntOrNull()
+
             if (gameId == null || playerName == null) {
                 close(
                     CloseReason(
@@ -144,15 +148,34 @@ fun Route.gameRouting() {
             }
 
             val thisConnection = GamesWebSocketConnection(this)
-            val playerIndex = game.getNextPlayerIdx()
+            var thisPlayer: Player
+            try {
+                when {
+                    (game.getGameStatus() == GameStatus.WAITING && playerId == null) -> {
+                        thisPlayer = game.addPlayer(thisConnection, playerName)
+                    }
 
-            thisConnection.sendServerSocketMessage(ServerSocketMessage.IdConfig(playerIndex))
+                    (game.getGameStatus() == GameStatus.RUNNING && playerId != null) -> {
+                        thisPlayer = game.reconnectPlayer(thisConnection, playerId)
+                    }
 
-            val thisPlayer = Player(index = playerIndex, name = playerName)
-            game.addPlayer(thisConnection, newPlayer = thisPlayer)
-
-            game.handlePlayerJoiningRequest(thisConnection, thisPlayer)
-
+                    else -> {
+                        close(
+                            CloseReason(
+                                CloseReason.Codes.CANNOT_ACCEPT,
+                                HttpErrorResponseBody("Game is not in correct state to join").toString()
+                            )
+                        )
+                        return@webSocket
+                    }
+                }
+            } catch (e: IllegalArgumentException) {
+                thisConnection.sendServerSocketMessage(
+                    ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
+                )
+                close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Connection could not be established"))
+                return@webSocket
+            }
             try {
                 for (frame in incoming) {
                     val playerMap = game.getPlayers()

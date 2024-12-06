@@ -83,7 +83,7 @@ class GameConfigParser {
                 "Host" -> {
                     val player = players.getOrNull(playerIndex)
                         ?: throw IllegalArgumentException("Not enough players for hosts")
-                    playerIndex++
+                        playerIndex++
                     Host(nodeIndex, coordinates, player)
                 }
 
