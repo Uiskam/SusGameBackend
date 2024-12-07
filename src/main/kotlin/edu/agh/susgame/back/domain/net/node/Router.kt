@@ -113,17 +113,6 @@ class Router(
      */
     fun isWorking(): Boolean = isWorking
 
-    fun toDTO(): RouterDTO {
-        return RouterDTO(
-            id = index,
-            bufferSize = bufferSize,
-            spaceLeft = spaceLeft,
-            upgradeCost = upgradeCost,
-            // TODO GAME-117 delete
-            overheatLevel = 0,
-            isWorking = true,
-        )
-    }
 
     /**
      * Upgrades the buffer capacity and increases the upgrade cost.
