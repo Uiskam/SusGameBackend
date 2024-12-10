@@ -2,7 +2,6 @@ package parsing_test
 
 import edu.agh.susgame.back.domain.net.Player
 import edu.agh.susgame.back.domain.build.GameConfigParser
-import edu.agh.susgame.config.EDGE_DEFAULT_UPGRADE_COST
 import edu.agh.susgame.config.GAME_DEFAULT_PACKETS_DELIVERED_GOAL
 import edu.agh.susgame.config.GAME_TIME_DEFAULT
 import kotlin.test.Test

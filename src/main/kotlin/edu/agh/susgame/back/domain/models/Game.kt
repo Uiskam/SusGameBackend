@@ -1,13 +1,14 @@
 package edu.agh.susgame.back.domain.models
 
+import edu.agh.susgame.back.domain.build.GameInitializer
 import edu.agh.susgame.back.domain.net.BFS
 import edu.agh.susgame.back.domain.net.NetGraph
 import edu.agh.susgame.back.domain.net.Player
-import edu.agh.susgame.back.domain.build.GameInitializer
 import edu.agh.susgame.back.domain.net.node.Host
 import edu.agh.susgame.back.services.rest.RestParser
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
+import edu.agh.susgame.dto.common.ColorDTO
 import edu.agh.susgame.dto.rest.model.Lobby
 import edu.agh.susgame.dto.rest.model.LobbyId
 import edu.agh.susgame.dto.socket.ClientSocketMessage
@@ -192,13 +193,16 @@ class Game(
             return
         }
 
-        val color: ULong = receivedMessage.color
+        val color: ULong = receivedMessage.color.decimalRgbaValue.toULong()
         thisPlayer.setColor(color)
         playerMap
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
                 connection.sendServerSocketMessage(
-                    ServerSocketMessage.PlayerChangeColor(playerId = thisPlayer.index, color = color)
+                    ServerSocketMessage.PlayerChangeColor(
+                        playerId = thisPlayer.index,
+                        color = ColorDTO(color.toString())
+                    )
                 )
             }
     }
@@ -302,12 +306,25 @@ class Game(
             } else if (router != null) {
                 router.upgradeBuffer(thisPlayer)
             } else {
-                thisConnection.sendServerSocketMessage(
-                    ServerSocketMessage.ServerError(
-                        "There is neither an edge not a host with id of $deviceIdToUpgrade."
-                    )
-                )
+                sendErrorMessage("There is neither an edge not a host with id of $deviceIdToUpgrade.")
             }
+        } catch (e: IllegalStateException) {
+            thisConnection.sendServerSocketMessage(
+                ServerSocketMessage.ServerError(e.message ?: "Unknown error")
+            )
+        }
+    }
+
+    suspend fun handleFixRouterDTO( thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.FixRouterDTO) {
+        if (gameStatus != GameStatus.RUNNING) {
+            sendErrorMessage("Invalid game status on server: Game is not running")
+            return
+        }
+
+        try {
+            val deviceIdToUpgrade = receivedMessage.deviceId
+            val router = netGraph.getRouter(deviceIdToUpgrade)
+            router?.fixBuffer() ?: sendErrorMessage("There is no host with id of $deviceIdToUpgrade")
         } catch (e: IllegalStateException) {
             thisConnection.sendServerSocketMessage(
                 ServerSocketMessage.ServerError(e.message ?: "Unknown error")
