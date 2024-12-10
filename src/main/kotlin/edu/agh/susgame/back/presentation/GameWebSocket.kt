@@ -97,6 +97,8 @@ fun Route.joinGameWebSocket() {
                         thisPlayer
                     )
 
+                    is ClientSocketMessage.FixRouterDTO -> game.handleFixRouterDTO(thisConnection, receivedMessage)
+
                     is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
                         thisConnection,
                         receivedMessage,
