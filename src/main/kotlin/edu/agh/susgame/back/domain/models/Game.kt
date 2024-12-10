@@ -31,6 +31,7 @@ class Game(
     private var gameStatus: GameStatus = GameStatus.WAITING
 
     private val playerMap: ConcurrentHashMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
+    lateinit var playersInGame: List<Player>
     private var nextPlayerIdx: AtomicInteger = AtomicInteger(0)
 
     lateinit var netGraph: NetGraph
@@ -44,15 +45,32 @@ class Game(
         return ((gameLength - (System.currentTimeMillis() - startTime)) / 1000).toInt()
     }
 
-    fun addPlayer(connection: GamesWebSocketConnection, newPlayer: Player) {
+    suspend fun addPlayer(connection: GamesWebSocketConnection, playerName: String): Player {
+        val playerIndex = getNextPlayerIdx()
+        connection.sendServerSocketMessage(ServerSocketMessage.IdConfig(playerIndex))
+        var newPlayer = Player(index = playerIndex, name = playerName)
+
         if (playerMap.values.any { it.name == newPlayer.name }) {
-            throw IllegalArgumentException("Player with name $newPlayer.name already exists")
+            throw IllegalArgumentException("Player with name ${newPlayer.name} already exists")
         }
+
         playerMap[connection] = newPlayer
+        handlePlayerJoiningRequest(connection, newPlayer)
+        return newPlayer
     }
 
-    fun removePlayer(playerName: String) {
-        playerMap.entries.removeIf { it.value.name == playerName }
+    fun reconnectPlayer(connection: GamesWebSocketConnection, playerId: Int): Player {
+        val player = playersInGame.find { it.index == playerId }
+            ?: throw IllegalArgumentException("Player with id $playerId not found")
+        if (playerMap.values.find { it == player } != null) {
+            throw IllegalArgumentException("Player with id $playerId is in game")
+        }
+        playerMap[connection] = player
+        return player
+    }
+
+    fun removePlayer(connection: GamesWebSocketConnection) {
+        playerMap.remove(connection)
     }
 
     fun getDataToReturn(): Lobby {
@@ -85,6 +103,7 @@ class Game(
         val (parsedGraph, gameLength, gameGoal) = GameInitializer.getGameParams(playerMap.values.toList())
         this.gameGoal = gameGoal
         this.gameLength = gameLength
+        playersInGame = playerMap.values.toList()
         netGraph = graph ?: parsedGraph
         bfs = BFS(net = netGraph, root = netGraph.getServer())
         gameStatus = GameStatus.RUNNING
