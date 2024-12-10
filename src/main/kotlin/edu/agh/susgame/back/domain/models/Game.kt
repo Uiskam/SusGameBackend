@@ -141,10 +141,6 @@ class Game(
         return Pair(randomIndex, QuizQuestions[randomIndex])
     }
 
-    fun getQuestionById(questionId: Int): QuizQuestion {
-        return QuizQuestions[questionId]
-    }
-
     /*
      * ##################################################
      * HANDLERS
@@ -266,15 +262,6 @@ class Game(
 
     }
 
-    private suspend fun notifyAllAboutGameStart() {
-        playerMap
-            .forEach { (connection, _) ->
-                connection.sendServerSocketMessage(
-                    ServerSocketMessage.GameStarted(0)
-                )
-            }
-    }
-
     suspend fun handleHostRoute(
         thisConnection: GamesWebSocketConnection,
         receivedMessage: ClientSocketMessage.HostRouteDTO
@@ -295,23 +282,6 @@ class Game(
     ) {
         val host = safeRetrieveHost(receivedMessage.id)
         host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
-    }
-
-    private suspend fun safeRetrieveHost(id: Int): Host {
-        if (gameStatus != GameStatus.RUNNING) {
-            val errorMessage = "Invalid game status on server: Game is not running"
-            sendErrorMessage(errorMessage)
-            throw IllegalStateException(errorMessage)
-        }
-        val host = netGraph.getHost(id)
-
-        if (host == null) {
-            val errorMessage = "There is no host with id of $id"
-            sendErrorMessage(errorMessage)
-            throw IllegalStateException(errorMessage)
-        }
-
-        return host
     }
 
     suspend fun handleUpgradeDTO(
@@ -342,6 +312,19 @@ class Game(
             thisConnection.sendServerSocketMessage(
                 ServerSocketMessage.ServerError(e.message ?: "Unknown error")
             )
+        }
+    }
+
+    fun handleQuizAnswerDTO(
+        thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.QuizAnswerDTO, thisPlayer: Player
+    ) {
+        val question = QuizQuestions[receivedMessage.questionId]
+        if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
+            thisPlayer.addMoneyForCorrectAnswer()
+        }
+
+        if (question.correctAnswer != receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
+            thisPlayer.activeQuestionId = -1
         }
     }
 
@@ -406,4 +389,35 @@ class Game(
         }
     }
 
+    /*
+     * ##################################################
+     * AUXILIARY FUNCTIONS
+     * ##################################################
+     */
+
+    private suspend fun notifyAllAboutGameStart() {
+        playerMap
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.GameStarted(0)
+                )
+            }
+    }
+
+    private suspend fun safeRetrieveHost(id: Int): Host {
+        if (gameStatus != GameStatus.RUNNING) {
+            val errorMessage = "Invalid game status on server: Game is not running"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+        val host = netGraph.getHost(id)
+
+        if (host == null) {
+            val errorMessage = "There is no host with id of $id"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+
+        return host
+    }
 }
