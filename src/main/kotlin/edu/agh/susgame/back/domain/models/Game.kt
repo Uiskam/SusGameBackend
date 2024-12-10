@@ -61,7 +61,6 @@ class Game(
     }
 
     fun reconnectPlayer(connection: GamesWebSocketConnection, playerId: Int): Player {
-        val playerId = playerId
         val player = playersInGame.find { it.index == playerId }
             ?: throw IllegalArgumentException("Player with id $playerId not found")
         if (playerMap.values.find { it == player } != null) {
@@ -71,8 +70,8 @@ class Game(
         return player
     }
 
-    fun removePlayer(playerName: String) {
-        playerMap.entries.removeIf { it.value.name == playerName }
+    fun removePlayer(connection: GamesWebSocketConnection) {
+        playerMap.remove(connection)
     }
 
     fun getDataToReturn(): Lobby {

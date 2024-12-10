@@ -237,7 +237,7 @@ fun Route.gameRouting() {
                 println(e.localizedMessage)
             } finally {
                 println("Removing $thisConnection!")
-                game.removePlayer(playerName)
+                game.removePlayer(thisConnection)
             }
         }
     }
