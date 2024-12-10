@@ -87,9 +87,9 @@ fun Route.joinGameWebSocket() {
 
                     is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
-                    is ClientSocketMessage.HostRouteDTO -> game.handleHostRoute(thisConnection, receivedMessage)
+                    is ClientSocketMessage.HostRouteDTO -> game.handleHostRoute(receivedMessage)
 
-                    is ClientSocketMessage.HostFlowDTO -> game.handleHostFlow(thisConnection, receivedMessage)
+                    is ClientSocketMessage.HostFlowDTO -> game.handleHostFlow(receivedMessage)
 
                     is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
                         thisConnection,
@@ -100,7 +100,6 @@ fun Route.joinGameWebSocket() {
                     is ClientSocketMessage.FixRouterDTO -> game.handleFixRouterDTO(thisConnection, receivedMessage)
 
                     is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
-                        thisConnection,
                         receivedMessage,
                         thisPlayer
                     )
