@@ -41,6 +41,10 @@ fun Route.joinGameWebSocket() {
         val thisPlayer: Player
         try {
             thisPlayer = when {
+                (!game.checkPinMatch(gamePin)) -> {
+                    closeConnection(this, "Game pin does not match")
+                    return@webSocket
+                }
                 (game.getGameStatus() == GameStatus.WAITING && playerId == null) -> {
                     game.addPlayer(thisConnection, playerName)
                 }
