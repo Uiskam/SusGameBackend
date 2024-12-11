@@ -43,14 +43,28 @@ class Game(
 
     private var startTime: Long = -1
 
+
     /**
      * Checks if the provided pin matches the game's pin.
      *
      * @param pin The pin to check.
-     * @return `true` if the provided pin matches the game's pin, `false` otherwise.
+     * @throws IllegalArgumentException if the provided pin does not match the game's pin.
      */
-    fun checkPinMatch(pin: String?): Boolean {
-        return gamePin == pin
+    fun checkPinMatch(pin: String?) {
+        if (gamePin != pin) {
+            throw IllegalArgumentException("Game pin does not match")
+        }
+    }
+
+    /**
+     * Checks if the current number of players has reached the maximum allowed.
+     *
+     * @throws IllegalArgumentException if the game is full.
+     */
+    fun checkPlayerCount() {
+        if (playerMap.size >= maxNumberOfPlayers) {
+            throw IllegalArgumentException("Game is full")
+        }
     }
 
     fun getTimeLeftInSeconds(): Int {

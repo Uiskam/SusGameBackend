@@ -18,7 +18,6 @@ class GamesRestImpl : GamesRest {
                 name = "Gra do testowania v0.1 engine",
                 id = 0,
                 maxNumberOfPlayers = 4,
-                gamePin = "pin",
             ),
             Game(
                 name = "Gra nr 1",

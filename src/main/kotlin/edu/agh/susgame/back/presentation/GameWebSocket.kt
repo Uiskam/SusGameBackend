@@ -8,6 +8,7 @@ import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -35,11 +36,9 @@ fun Route.joinGameWebSocket() {
         val thisConnection = GamesWebSocketConnection(this)
         val thisPlayer: Player
         try {
+            game.checkPinMatch(gamePin)
+            game.checkPlayerCount()
             thisPlayer = when {
-                (!game.checkPinMatch(gamePin)) -> {
-                    closeConnection(this, "Game pin does not match")
-                    return@webSocket
-                }
                 (game.getGameStatus() == GameStatus.WAITING && playerId == null) -> {
                     game.addPlayer(thisConnection, playerName)
                 }
@@ -57,6 +56,7 @@ fun Route.joinGameWebSocket() {
             thisConnection.sendServerSocketMessage(
                 ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
             )
+            delay(50)
             closeConnection(this, "Connection could not be established")
             return@webSocket
         }
