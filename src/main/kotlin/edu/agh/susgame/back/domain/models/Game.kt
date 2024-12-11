@@ -25,19 +25,21 @@ class Game(
     val id: Int,
     val maxNumberOfPlayers: Int,
     val gamePin: String? = null,
+
+
 ) {
 
     @Volatile
     private var gameStatus: GameStatus = GameStatus.WAITING
 
     private val playerMap: ConcurrentHashMap<GamesWebSocketConnection, Player> = ConcurrentHashMap()
-    lateinit var playersInGame: List<Player>
+    private lateinit var playersInGame: List<Player>
     private var nextPlayerIdx: AtomicInteger = AtomicInteger(0)
 
     lateinit var netGraph: NetGraph
-    var gameLength: Int = GAME_TIME_DEFAULT
+    private var gameLength: Int = GAME_TIME_DEFAULT
     var gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL
-    lateinit var bfs: BFS
+    private lateinit var bfs: BFS
 
     private var startTime: Long = -1
 
@@ -48,7 +50,7 @@ class Game(
     suspend fun addPlayer(connection: GamesWebSocketConnection, playerName: String): Player {
         val playerIndex = getNextPlayerIdx()
         connection.sendServerSocketMessage(ServerSocketMessage.IdConfig(playerIndex))
-        var newPlayer = Player(index = playerIndex, name = playerName)
+        val newPlayer = Player(index = playerIndex, name = playerName)
 
         if (playerMap.values.any { it.name == newPlayer.name }) {
             throw IllegalArgumentException("Player with name ${newPlayer.name} already exists")
@@ -88,13 +90,13 @@ class Game(
 
     fun getPlayers(): Map<GamesWebSocketConnection, Player> = playerMap.toMap()
 
-    fun getNextPlayerIdx(): Int = nextPlayerIdx.getAndIncrement()
+    private fun getNextPlayerIdx(): Int = nextPlayerIdx.getAndIncrement()
 
-    fun addMoneyPerIterationForAllPlayers() {
+    private fun addMoneyPerIterationForAllPlayers() {
         playerMap.values.forEach { it.addMoneyPerIteration() }
     }
 
-    fun areAllPlayersReady() = playerMap.values.all { it.isReady }
+    private fun areAllPlayersReady() = playerMap.values.all { it.isReady }
 
     /**
      * Starts the game by generating the graph, setting the start time and changing the game status to running
@@ -119,7 +121,7 @@ class Game(
      *
      * The game status will be updated to either FINISHED_WON or FINISHED_LOST based on the conditions.
      */
-    fun endGameIfPossible() {
+    private fun endGameIfPossible() {
         gameStatus = when {
             netGraph.getTotalPacketsDelivered() >= gameGoal -> {
                 GameStatus.FINISHED_WON
@@ -135,13 +137,9 @@ class Game(
         }
     }
 
-    fun getRandomQuestion(): Pair<Int, QuizQuestion> {
+    private fun getRandomQuestion(): Pair<Int, QuizQuestion> {
         val randomIndex = QuizQuestions.indices.random()
         return Pair(randomIndex, QuizQuestions[randomIndex])
-    }
-
-    fun getQuestionById(questionId: Int): QuizQuestion {
-        return QuizQuestions[questionId]
     }
 
     /*
@@ -152,7 +150,7 @@ class Game(
      * Lobby handlers
      */
 
-    suspend fun handlePlayerJoiningRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
+    private suspend fun handlePlayerJoiningRequest(thisConnection: GamesWebSocketConnection, thisPlayer: Player) {
         playerMap
             .filter { it.key != thisConnection }
             .forEach { (connection, _) ->
@@ -237,7 +235,7 @@ class Game(
     }
 
     suspend fun handleGameState(receivedGameStatus: ClientSocketMessage.GameState, webSocket: WebSocketSession) {
-        if (!receivedGameStatus.gameStatus.equals(GameStatus.RUNNING)) {
+        if (receivedGameStatus.gameStatus != GameStatus.RUNNING) {
             sendErrorMessage("Invalid game status sent by client")
             return
         }
@@ -268,17 +266,7 @@ class Game(
 
     }
 
-    private suspend fun notifyAllAboutGameStart() {
-        playerMap
-            .forEach { (connection, _) ->
-                connection.sendServerSocketMessage(
-                    ServerSocketMessage.GameStarted(0)
-                )
-            }
-    }
-
     suspend fun handleHostRoute(
-        thisConnection: GamesWebSocketConnection,
         receivedMessage: ClientSocketMessage.HostRouteDTO
     ) {
         val host = safeRetrieveHost(receivedMessage.id)
@@ -292,28 +280,10 @@ class Game(
     }
 
     suspend fun handleHostFlow(
-        thisConnection: GamesWebSocketConnection,
         receivedMessage: ClientSocketMessage.HostFlowDTO
     ) {
         val host = safeRetrieveHost(receivedMessage.id)
         host.setMaxPacketsPerTick(receivedMessage.packetsSentPerTick)
-    }
-
-    private suspend fun safeRetrieveHost(id: Int): Host {
-        if (gameStatus != GameStatus.RUNNING) {
-            val errorMessage = "Invalid game status on server: Game is not running"
-            sendErrorMessage(errorMessage)
-            throw IllegalStateException(errorMessage)
-        }
-        val host = netGraph.getHost(id)
-
-        if (host == null) {
-            val errorMessage = "There is no host with id of $id"
-            sendErrorMessage(errorMessage)
-            throw IllegalStateException(errorMessage)
-        }
-
-        return host
     }
 
     suspend fun handleUpgradeDTO(
@@ -360,10 +330,23 @@ class Game(
         }
     }
 
+    fun handleQuizAnswerDTO(
+        receivedMessage: ClientSocketMessage.QuizAnswerDTO, thisPlayer: Player
+    ) {
+        val question = QuizQuestions[receivedMessage.questionId]
+        if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
+            thisPlayer.addMoneyForCorrectAnswer()
+        }
+
+        if (question.correctAnswer != receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
+            thisPlayer.activeQuestionId = -1
+        }
+    }
+
     /*
      * Other messages
      */
-    suspend fun sendErrorMessage(errorMessage: String) {
+    private suspend fun sendErrorMessage(errorMessage: String) {
         playerMap.forEach { (connection, _) ->
             connection.sendServerSocketMessage(
                 ServerSocketMessage.ServerError(errorMessage = errorMessage)
@@ -421,4 +404,35 @@ class Game(
         }
     }
 
+    /*
+     * ##################################################
+     * AUXILIARY FUNCTIONS
+     * ##################################################
+     */
+
+    private suspend fun notifyAllAboutGameStart() {
+        playerMap
+            .forEach { (connection, _) ->
+                connection.sendServerSocketMessage(
+                    ServerSocketMessage.GameStarted(0)
+                )
+            }
+    }
+
+    private suspend fun safeRetrieveHost(id: Int): Host {
+        if (gameStatus != GameStatus.RUNNING) {
+            val errorMessage = "Invalid game status on server: Game is not running"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+        val host = netGraph.getHost(id)
+
+        if (host == null) {
+            val errorMessage = "There is no host with id of $id"
+            sendErrorMessage(errorMessage)
+            throw IllegalStateException(errorMessage)
+        }
+
+        return host
+    }
 }
