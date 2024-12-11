@@ -1,6 +1,7 @@
 package edu.agh.susgame.back.domain.models
 
 import edu.agh.susgame.back.domain.build.GameInitializer
+import edu.agh.susgame.back.domain.models.quiz.QuizManager
 import edu.agh.susgame.back.domain.net.BFS
 import edu.agh.susgame.back.domain.net.NetGraph
 import edu.agh.susgame.back.domain.net.Player
@@ -25,8 +26,6 @@ class Game(
     val id: Int,
     val maxNumberOfPlayers: Int,
     val gamePin: String? = null,
-
-
 ) {
 
     @Volatile
@@ -42,6 +41,8 @@ class Game(
     private lateinit var bfs: BFS
 
     private var startTime: Long = -1
+
+    private val quizManager = QuizManager()
 
     fun getTimeLeftInSeconds(): Int {
         return ((gameLength - (System.currentTimeMillis() - startTime)) / 1000).toInt()
@@ -135,11 +136,6 @@ class Game(
                 gameStatus
             }
         }
-    }
-
-    private fun getRandomQuestion(): Pair<Int, QuizQuestion> {
-        val randomIndex = QuizQuestions.indices.random()
-        return Pair(randomIndex, QuizQuestions[randomIndex])
     }
 
     /*
@@ -258,7 +254,7 @@ class Game(
             // GAME IS RUNNING
             broadcastStateThread(webSocket)
             runEngineIterationThread(webSocket)
-            quizQuestionsThread(webSocket)
+            quizManager.init(playerMap)
         } else {
             sendErrorMessage("Not all players are ready")
         }
@@ -330,17 +326,11 @@ class Game(
         }
     }
 
-    fun handleQuizAnswerDTO(
+    suspend fun handleQuizAnswerDTO(
+        thisConnection: GamesWebSocketConnection,
         receivedMessage: ClientSocketMessage.QuizAnswerDTO, thisPlayer: Player
     ) {
-        val question = QuizQuestions[receivedMessage.questionId]
-        if (question.correctAnswer == receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
-            thisPlayer.addMoneyForCorrectAnswer()
-        }
-
-        if (question.correctAnswer != receivedMessage.answer && receivedMessage.questionId == thisPlayer.activeQuestionId) {
-            thisPlayer.activeQuestionId = -1
-        }
+        quizManager.answerQuestion(thisPlayer, thisConnection, receivedMessage.answer)
     }
 
     /*
@@ -380,26 +370,6 @@ class Game(
                 delay(BFS_FREQUENCY)
                 addMoneyPerIterationForAllPlayers()
                 bfs.run()
-            }
-        }
-    }
-
-    private fun quizQuestionsThread(webSocket: WebSocketSession) {
-        webSocket.launch {
-            while (gameStatus == GameStatus.RUNNING) {
-                playerMap.forEach { (connection, player) ->
-                    val (questionId, question) = getRandomQuestion()
-                    player.activeQuestionId = questionId
-                    connection.sendServerSocketMessage(
-                        ServerSocketMessage.QuizQuestionDTO(
-                            questionId = questionId,
-                            question = question.question,
-                            answers = question.answers,
-                            correctAnswer = question.correctAnswer,
-                        )
-                    )
-                }
-                delay(GAME_QUESTION_SENDING_INTERVAL)
             }
         }
     }
