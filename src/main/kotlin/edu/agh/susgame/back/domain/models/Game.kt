@@ -43,6 +43,16 @@ class Game(
 
     private var startTime: Long = -1
 
+    /**
+     * Checks if the provided pin matches the game's pin.
+     *
+     * @param pin The pin to check.
+     * @return `true` if the provided pin matches the game's pin, `false` otherwise.
+     */
+    fun checkPinMatch(pin: String?): Boolean {
+        return gamePin == pin
+    }
+
     fun getTimeLeftInSeconds(): Int {
         return ((gameLength - (System.currentTimeMillis() - startTime)) / 1000).toInt()
     }

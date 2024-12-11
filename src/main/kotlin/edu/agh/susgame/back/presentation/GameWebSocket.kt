@@ -25,8 +25,15 @@ fun Route.joinGameWebSocket() {
         }
         val playerId = call.request.queryParameters["playerId"]?.toIntOrNull()
 
+        val gamePin = call.request.queryParameters["gamePin"]
+
         val game = gamesRestImpl.findGameById(gameId) ?: run {
             closeConnection(this, "Game with id $gameId not found")
+            return@webSocket
+        }
+
+        if (!game.checkPinMatch(gamePin)) {
+            closeConnection(this, "Game pin does not match")
             return@webSocket
         }
 
