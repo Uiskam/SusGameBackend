@@ -9,6 +9,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -53,10 +54,12 @@ fun Route.joinGameWebSocket() {
                 }
             }
         } catch (e: IllegalArgumentException) {
-            thisConnection.sendServerSocketMessage(
-                ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
-            )
-            delay(50)
+            runBlocking{
+                thisConnection.sendServerSocketMessage(
+                    ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
+                )
+            }
+
             closeConnection(this, "Connection could not be established")
             return@webSocket
         }
