@@ -32,11 +32,6 @@ fun Route.joinGameWebSocket() {
             return@webSocket
         }
 
-        if (!game.checkPinMatch(gamePin)) {
-            closeConnection(this, "Game pin does not match")
-            return@webSocket
-        }
-
         val thisConnection = GamesWebSocketConnection(this)
         val thisPlayer: Player
         try {
