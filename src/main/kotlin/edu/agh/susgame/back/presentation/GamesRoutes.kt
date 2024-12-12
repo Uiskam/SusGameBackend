@@ -4,6 +4,7 @@ import edu.agh.susgame.back.services.rest.GamesRestImpl
 import edu.agh.susgame.back.services.rest.GamesRestImpl.DeleteGameResult
 import edu.agh.susgame.dto.rest.games.model.*
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyPin
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -45,22 +46,23 @@ private fun Route.getAllGamesRoute() {
 
 private fun Route.getGameByIdRoute() {
     get("{gameId}") {
-        call.parameters["gameId"]
-            ?.toInt()
-            ?.let { LobbyId(it) }
-            ?.let { lobbyId ->
-                val result = gamesRestImpl.getGame(lobbyId).await()
-                call.respond(
-                    status = result.let { HttpStatusCode.fromValue(it.responseCode) },
-                    message = when (result) {
-                        is GetGameApiResult.Success -> result.lobby
-                        GetGameApiResult.DoesNotExist ->
-                            HttpErrorResponseBody("Game with ${lobbyId.value} not found")
+        val gameId = call.parameters["gameId"]?.toIntOrNull() ?: run {
+            call.respond(HttpStatusCode.BadRequest, HttpErrorResponseBody("Game id could not be casted to int!"))
+            return@get
+        }
+        val gamePin = call.request.queryParameters["gamePin"] ?: ""
+        val result = gamesRestImpl.getGameDetails(LobbyId(gameId), LobbyPin(gamePin)).await()
+        call.respond(
+            status = result.let { HttpStatusCode.fromValue(it.responseCode) },
+            message = when (result) {
+                is GetGameApiResult.Success -> result.lobby
+                GetGameApiResult.DoesNotExist ->
+                    HttpErrorResponseBody("Game with $gameId not found")
 
-                        GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
-                    }
-                )
+                GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
+                GetGameApiResult.InvalidPin -> HttpErrorResponseBody("Invalid pin")
             }
+        )
     }
 }
 

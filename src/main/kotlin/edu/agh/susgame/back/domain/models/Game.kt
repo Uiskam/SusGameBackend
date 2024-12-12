@@ -9,8 +9,9 @@ import edu.agh.susgame.back.services.rest.RestParser
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.common.ColorDTO
-import edu.agh.susgame.dto.rest.model.Lobby
+import edu.agh.susgame.dto.rest.model.LobbyDetails
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyRow
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 import edu.agh.susgame.dto.socket.common.GameStatus
@@ -51,7 +52,7 @@ class Game(
      * @throws IllegalArgumentException if the provided pin does not match the game's pin.
      */
     fun checkPinMatch(pin: String?) {
-        if (gamePin != pin) {
+        if (gamePin != null && gamePin != pin) {
             throw IllegalArgumentException("Game pin does not match")
         }
     }
@@ -99,14 +100,23 @@ class Game(
         playerMap.remove(connection)
     }
 
-    fun getDataToReturn(): Lobby {
-        return Lobby(
+    fun getLobbyDetails(): LobbyDetails {
+        return LobbyDetails(
             id = LobbyId(id),
             name = name,
             maxNumOfPlayers = maxNumberOfPlayers,
-            // TODO GAME-74 Remove this hardcoded value
-            gameTime = 10,
+            isPinSetUp = gamePin != null,
             playersWaiting = playerMap.values.map { it.toREST() },
+        )
+    }
+
+    fun getLobbyRow(): LobbyRow {
+        return LobbyRow(
+            id = LobbyId(id),
+            name = name,
+            maxNumOfPlayers = maxNumberOfPlayers,
+            playersWaitingCount = playerMap.size,
+            isPinSetUp = gamePin != null,
         )
     }
 

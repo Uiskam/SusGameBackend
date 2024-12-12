@@ -10,12 +10,13 @@ import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyPin
 import java.util.concurrent.CompletableFuture
 
 interface GamesRest {
     fun getAllGames(): CompletableFuture<GetAllGamesApiResult>
 
-    fun getGame(gameId: LobbyId): CompletableFuture<GetGameApiResult>
+    fun getGameDetails(gameId: LobbyId, gamePin: LobbyPin?): CompletableFuture<GetGameApiResult>
 
     fun getGameMap(gameId: LobbyId): CompletableFuture<GetGameMapApiResult>
 
