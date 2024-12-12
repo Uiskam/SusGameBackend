@@ -5,7 +5,6 @@ import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 import kotlinx.coroutines.delay
-import java.util.concurrent.ConcurrentHashMap
 
 
 data class QuizQuestion(
