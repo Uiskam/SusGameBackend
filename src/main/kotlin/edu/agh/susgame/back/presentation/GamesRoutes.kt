@@ -46,21 +46,28 @@ private fun Route.getAllGamesRoute() {
 
 private fun Route.getGameByIdRoute() {
     get("{gameId}") {
-        val gameId = call.parameters["gameId"]?.toIntOrNull() ?: run {
-            call.respond(HttpStatusCode.BadRequest, HttpErrorResponseBody("Game id could not be casted to int!"))
-            return@get
-        }
-        val gamePin = call.request.queryParameters["gamePin"] ?: ""
-        val result = gamesRestImpl.getGameDetails(LobbyId(gameId), LobbyPin(gamePin)).await()
+        val gameId = call.parameters["gameId"]
+            ?.toIntOrNull()
+            ?.let { LobbyId(it) }
+            ?: run {
+                call.respond(HttpStatusCode.BadRequest, HttpErrorResponseBody("Game id could not be casted to int!"))
+                return@get
+            }
+
+        val gamePin = call.request.queryParameters["gamePin"]
+            ?.let { LobbyPin(it) }
+
+        val result = gamesRestImpl.getGameDetails(gameId, gamePin).await()
+
         call.respond(
             status = result.let { HttpStatusCode.fromValue(it.responseCode) },
             message = when (result) {
                 is GetGameApiResult.Success -> result.lobby
                 GetGameApiResult.DoesNotExist ->
-                    HttpErrorResponseBody("Game with $gameId not found")
+                    HttpErrorResponseBody("Game with ${gameId.value} not found")
 
-                GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
                 GetGameApiResult.InvalidPin -> HttpErrorResponseBody("Invalid pin")
+                GetGameApiResult.OtherError -> HttpUnknownErrorResponseBody
             }
         )
     }
