@@ -14,7 +14,6 @@ class Player(
     val name: String,
     var isReady: Boolean = false,
     private var currentMoney: Int = PLAYER_BASE_MONEY,
-    var activeQuestionId: Int = -1
 ) {
     private var color: ULong? = null
 
