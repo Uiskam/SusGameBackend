@@ -10,8 +10,9 @@ import edu.agh.susgame.back.services.rest.RestParser
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.*
 import edu.agh.susgame.dto.common.ColorDTO
-import edu.agh.susgame.dto.rest.model.Lobby
+import edu.agh.susgame.dto.rest.model.LobbyDetails
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyRow
 import edu.agh.susgame.dto.socket.ClientSocketMessage
 import edu.agh.susgame.dto.socket.ServerSocketMessage
 import edu.agh.susgame.dto.socket.common.GameStatus
@@ -43,6 +44,29 @@ class Game(
     private var startTime: Long = -1
 
     private val quizManager = QuizManager()
+
+    /**
+     * Checks if the provided pin matches the game's pin.
+     *
+     * @param pin The pin to check.
+     * @throws IllegalArgumentException if the provided pin does not match the game's pin.
+     */
+    fun checkPinMatch(pin: String?) {
+        if (gamePin != null && gamePin != pin) {
+            throw IllegalArgumentException("Game pin does not match")
+        }
+    }
+
+    /**
+     * Checks if the current number of players has reached the maximum allowed.
+     *
+     * @throws IllegalArgumentException if the game is full.
+     */
+    fun checkPlayerCount() {
+        if (playerMap.size >= maxNumberOfPlayers) {
+            throw IllegalArgumentException("Game is full")
+        }
+    }
 
     fun getTimeLeftInSeconds(): Int {
         return ((gameLength - (System.currentTimeMillis() - startTime)) / 1000).toInt()
@@ -76,14 +100,23 @@ class Game(
         playerMap.remove(connection)
     }
 
-    fun getDataToReturn(): Lobby {
-        return Lobby(
+    fun getLobbyDetails(): LobbyDetails {
+        return LobbyDetails(
             id = LobbyId(id),
             name = name,
             maxNumOfPlayers = maxNumberOfPlayers,
-            // TODO GAME-74 Remove this hardcoded value
-            gameTime = 10,
+            isPinSetUp = gamePin != null,
             playersWaiting = playerMap.values.map { it.toREST() },
+        )
+    }
+
+    fun getLobbyRow(): LobbyRow {
+        return LobbyRow(
+            id = LobbyId(id),
+            name = name,
+            maxNumOfPlayers = maxNumberOfPlayers,
+            playersWaitingCount = playerMap.size,
+            isPinSetUp = gamePin != null,
         )
     }
 
