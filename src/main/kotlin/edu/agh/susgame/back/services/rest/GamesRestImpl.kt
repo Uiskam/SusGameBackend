@@ -45,7 +45,10 @@ class GamesRestImpl : GamesRest {
         GetAllGamesApiResult.Success(gameStorage.getLobbyRows())
     }
 
-    override fun getGameDetails(gameId: LobbyId, gamePin: LobbyPin?): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
+    override fun getGameDetails(
+        gameId: LobbyId,
+        gamePin: LobbyPin?
+    ): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
         gameStorage.findGameById(gameId.value)?.let { game ->
             try {
                 game.checkPinMatch(gamePin?.value)
@@ -59,12 +62,12 @@ class GamesRestImpl : GamesRest {
     override fun createGame(
         gameName: String,
         maxNumberOfPlayers: Int,
-        gamePin: String?
+        gamePin: LobbyPin?
     ): CompletableFuture<CreateGameApiResult> = CompletableFuture.supplyAsync {
         gameStorage.findGameByName(gameName)?.let {
             CreateGameApiResult.NameAlreadyExists
         } ?: run {
-            val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin)
+            val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin = gamePin?.value)
             gameStorage.add(newGame)
             CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
         }

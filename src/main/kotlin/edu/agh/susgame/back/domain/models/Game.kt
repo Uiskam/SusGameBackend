@@ -26,6 +26,7 @@ class Game(
     val name: String,
     val id: Int,
     val maxNumberOfPlayers: Int,
+    // TODO This should be `LobbyPin`
     val gamePin: String? = null,
 ) {
 

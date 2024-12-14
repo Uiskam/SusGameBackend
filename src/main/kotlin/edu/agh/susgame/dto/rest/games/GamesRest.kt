@@ -23,6 +23,6 @@ interface GamesRest {
     fun createGame(
         gameName: String,
         maxNumberOfPlayers: Int,
-        gamePin: String? = null,
+        gamePin: LobbyPin? = null,
     ): CompletableFuture<CreateGameApiResult>
 }
