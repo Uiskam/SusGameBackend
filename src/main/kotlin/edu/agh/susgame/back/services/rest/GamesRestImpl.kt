@@ -7,6 +7,7 @@ import edu.agh.susgame.dto.rest.games.model.GetAllGamesApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameApiResult
 import edu.agh.susgame.dto.rest.games.model.GetGameMapApiResult
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyPin
 import edu.agh.susgame.dto.socket.common.GameStatus
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicInteger
@@ -41,12 +42,17 @@ class GamesRestImpl : GamesRest {
     private val nextGameId: AtomicInteger = AtomicInteger(gameStorage.size())
 
     override fun getAllGames(): CompletableFuture<GetAllGamesApiResult> = CompletableFuture.supplyAsync {
-        GetAllGamesApiResult.Success(gameStorage.getReturnableData())
+        GetAllGamesApiResult.Success(gameStorage.getLobbyRows())
     }
 
-    override fun getGame(gameId: LobbyId): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
+    override fun getGameDetails(gameId: LobbyId, gamePin: LobbyPin?): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
         gameStorage.findGameById(gameId.value)?.let { game ->
-            GetGameApiResult.Success(game.getDataToReturn())
+            try {
+                game.checkPinMatch(gamePin?.value)
+            } catch (e: IllegalArgumentException) {
+                return@supplyAsync GetGameApiResult.InvalidPin
+            }
+            GetGameApiResult.Success(game.getLobbyDetails())
         } ?: GetGameApiResult.DoesNotExist
     }
 
@@ -60,7 +66,6 @@ class GamesRestImpl : GamesRest {
         } ?: run {
             val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin)
             gameStorage.add(newGame)
-            // TODO GAME-74 Suggestion: Propagate the usage of `LobbyId` on backend
             CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
         }
     }

@@ -8,6 +8,7 @@ import edu.agh.susgame.dto.socket.common.GameStatus
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.decodeFromByteArray
@@ -25,6 +26,8 @@ fun Route.joinGameWebSocket() {
         }
         val playerId = call.request.queryParameters["playerId"]?.toIntOrNull()
 
+        val gamePin = call.request.queryParameters["gamePin"]
+
         val game = gamesRestImpl.findGameById(gameId) ?: run {
             closeConnection(this, "Game with id $gameId not found")
             return@webSocket
@@ -33,6 +36,8 @@ fun Route.joinGameWebSocket() {
         val thisConnection = GamesWebSocketConnection(this)
         val thisPlayer: Player
         try {
+            game.checkPinMatch(gamePin)
+            game.checkPlayerCount()
             thisPlayer = when {
                 (game.getGameStatus() == GameStatus.WAITING && playerId == null) -> {
                     game.addPlayer(thisConnection, playerName)
@@ -48,9 +53,12 @@ fun Route.joinGameWebSocket() {
                 }
             }
         } catch (e: IllegalArgumentException) {
-            thisConnection.sendServerSocketMessage(
-                ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
-            )
+            runBlocking{
+                thisConnection.sendServerSocketMessage(
+                    ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
+                )
+            }
+
             closeConnection(this, "Connection could not be established")
             return@webSocket
         }
