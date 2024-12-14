@@ -108,12 +108,19 @@ fun Route.joinGameWebSocket() {
                     is ClientSocketMessage.FixRouterDTO -> game.handleFixRouterDTO(thisConnection, receivedMessage)
 
                     is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
+                        thisConnection,
                         receivedMessage,
                         thisPlayer
                     )
                 }
             }
-        } catch (e: Exception) {
+        }
+        catch (e: IllegalArgumentException) {
+            thisConnection.sendServerSocketMessage(
+                ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
+            )
+        }
+        catch (e: Exception) {
             println(e.localizedMessage)
         } finally {
             println("Removing $thisConnection!")
