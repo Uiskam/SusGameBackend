@@ -16,25 +16,20 @@ class GamesRestImpl : GamesRest {
     private val gameStorage = GameStorage(
         games = listOf(
             Game(
-                name = "Gra do testowania v0.1 engine",
+                name = "Gra Michała",
                 id = 0,
                 maxNumberOfPlayers = 4,
             ),
             Game(
-                name = "Gra nr 1",
+                name = "Gra Jurka",
                 id = 1,
                 maxNumberOfPlayers = 5,
             ),
             Game(
-                name = "Gra inna",
+                name = "Gra zabezpieczona pinem",
                 id = 2,
                 maxNumberOfPlayers = 6,
                 gamePin = "pin",
-            ),
-            Game(
-                name = "Gra III",
-                id = 3,
-                maxNumberOfPlayers = 3,
             ),
         )
     )

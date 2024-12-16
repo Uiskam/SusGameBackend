@@ -70,10 +70,10 @@ class RestParserTest : TestUtils {
         assertEquals(result.server, ServerDTO(id = 3, coordinates = coordinates4))
 
         assertEquals(result.edges.size, 4)
-        assertContains(result.edges, EdgeDTO(from = 0, to = 1, weight = 32))
-        assertContains(result.edges, EdgeDTO(from = 0, to = 2, weight = 64))
-        assertContains(result.edges, EdgeDTO(from = 1, to = 2, weight = 128))
-        assertContains(result.edges, EdgeDTO(from = 2, to = 3, weight = 256))
+        assertContains(result.edges, EdgeDTO(id = 0, from = 0, to = 1, weight = 32))
+        assertContains(result.edges, EdgeDTO(id = 1, from = 0, to = 2, weight = 64))
+        assertContains(result.edges, EdgeDTO(id = 2, from = 1, to = 2, weight = 128))
+        assertContains(result.edges, EdgeDTO(id = 3, from = 2, to = 3, weight = 256))
     }
 
     private fun asPair(coordinates: Coordinates): Pair<Int, Int> = Pair(coordinates.x, coordinates.y)
