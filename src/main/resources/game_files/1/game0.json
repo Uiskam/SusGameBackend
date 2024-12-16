@@ -24,7 +24,7 @@
 ],
   "edges": [
     {
-      "weight": 10,
+      "weight": 10000,
       "from": 0,
       "to": 1
     },

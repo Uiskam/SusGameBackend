@@ -55,12 +55,12 @@
   ],
   "edges": [
     {
-      "weight": 10,
+      "weight": 10000,
       "from": 3,
       "to": 0
     },
     {
-      "weight": 10,
+      "weight": 10000,
       "from": 4,
       "to": 0
     },
