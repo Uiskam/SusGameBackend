@@ -110,7 +110,8 @@ fun Route.joinGameWebSocket() {
                     is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
                         thisConnection,
                         receivedMessage,
-                        thisPlayer
+                        thisPlayer,
+                        this
                     )
                 }
             }

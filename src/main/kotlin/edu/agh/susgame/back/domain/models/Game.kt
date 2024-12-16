@@ -343,7 +343,10 @@ class Game(
         }
     }
 
-    suspend fun handleFixRouterDTO( thisConnection: GamesWebSocketConnection, receivedMessage: ClientSocketMessage.FixRouterDTO) {
+    suspend fun handleFixRouterDTO(
+        thisConnection: GamesWebSocketConnection,
+        receivedMessage: ClientSocketMessage.FixRouterDTO
+    ) {
         if (gameStatus != GameStatus.RUNNING) {
             sendErrorMessage("Invalid game status on server: Game is not running")
             return
@@ -360,11 +363,13 @@ class Game(
         }
     }
 
-    suspend fun handleQuizAnswerDTO(
+    fun handleQuizAnswerDTO(
         thisConnection: GamesWebSocketConnection,
-        receivedMessage: ClientSocketMessage.QuizAnswerDTO, thisPlayer: Player
+        receivedMessage: ClientSocketMessage.QuizAnswerDTO,
+        thisPlayer: Player,
+        webSocket: WebSocketSession
     ) {
-        quizManager.answerQuestion(thisPlayer, thisConnection, receivedMessage.answer)
+        quizManager.answerQuestion(webSocket, thisPlayer, thisConnection, receivedMessage.answer)
     }
 
     /*
