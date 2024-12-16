@@ -288,7 +288,7 @@ class Game(
             // GAME IS RUNNING
             broadcastStateThread(webSocket)
             runEngineIterationThread(webSocket)
-            quizManager.init(playerMap)
+            quizManager.init(webSocket, playerMap)
         } else {
             sendErrorMessage("Not all players are ready")
         }

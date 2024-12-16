@@ -4,7 +4,9 @@ import edu.agh.susgame.back.domain.net.Player
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
 import edu.agh.susgame.dto.socket.ServerSocketMessage
+import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 data class QuizQuestion(
@@ -46,10 +48,12 @@ class QuizManager{
         )
     }
 
-    suspend fun init(playerMap: Map<GamesWebSocketConnection, Player>) {
-        delay(GAME_QUESTION_SENDING_INTERVAL)
-        playerMap.forEach { (connection, player) ->
-            assignNewQuestionForPlayer(player, connection)
+    fun init(webSocket: WebSocketSession, playerMap: Map<GamesWebSocketConnection, Player>) {
+        webSocket.launch {
+            delay(GAME_QUESTION_SENDING_INTERVAL)
+            playerMap.forEach { (connection, player) ->
+                assignNewQuestionForPlayer(player, connection)
+            }
         }
     }
 
