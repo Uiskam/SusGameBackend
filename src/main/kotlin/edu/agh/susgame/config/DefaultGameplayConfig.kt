@@ -6,7 +6,7 @@ import kotlin.math.ceil
 
 // base engine settings
 const val BFS_FREQUENCY = 1000L
-const val CLIENT_REFRESH_FREQUENCY = 1000L
+const val CLIENT_REFRESH_FREQUENCY = 150L
 
 // gameplay constants
 const val MONEY_GAINED_BY_CORRECT_ANSWER = 1000
@@ -25,7 +25,7 @@ fun nextEdgeUpgradeCost(upgradeCost: Int) = upgradeCost + ceil(EDGE_UPGRADE_COST
 fun nextEdgeWeight(weight: Int) = weight + ceil(EDGE_UPGRADE_WEIGHT_COEFF * weight).toInt()
 
 const val PLAYER_BASE_MONEY = 0
-const val PLAYER_MAX_PACKETS_PER_TICK = 100000
+const val PLAYER_MAX_PACKETS_PER_TICK = 1000000
 const val PLAYER_DEFAULT_PACKETS_PER_TICK = 0
 
 const val GAME_DEFAULT_PACKETS_DELIVERED_GOAL = 1000
