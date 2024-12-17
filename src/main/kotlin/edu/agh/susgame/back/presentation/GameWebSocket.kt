@@ -53,7 +53,7 @@ fun Route.joinGameWebSocket() {
                 }
             }
         } catch (e: IllegalArgumentException) {
-            runBlocking{
+            runBlocking {
                 thisConnection.sendServerSocketMessage(
                     ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
                 )
@@ -64,64 +64,64 @@ fun Route.joinGameWebSocket() {
         }
         try {
             for (frame in incoming) {
+                try {
+                    frame as? Frame.Binary ?: continue
+                    when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
+                        // Handle lobby
+                        is ClientSocketMessage.PlayerChangeReadiness -> game.handlePlayerChangeReadinessRequest(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
-                frame as? Frame.Binary ?: continue
+                        is ClientSocketMessage.PlayerChangeColor -> game.handlePlayerChangeColor(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
-                when (val receivedMessage = Cbor.decodeFromByteArray<ClientSocketMessage>(frame.data)) {
-                    // Handle lobby
-                    is ClientSocketMessage.PlayerChangeReadiness -> game.handlePlayerChangeReadinessRequest(
-                        thisConnection,
-                        thisPlayer,
-                        receivedMessage
-                    )
+                        is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(
+                            thisConnection,
+                            thisPlayer
+                        )
 
-                    is ClientSocketMessage.PlayerChangeColor -> game.handlePlayerChangeColor(
-                        thisConnection,
-                        thisPlayer,
-                        receivedMessage
-                    )
+                        // Handle game
+                        is ClientSocketMessage.ChatMessage -> game.handleChatMessage(
+                            thisConnection,
+                            thisPlayer,
+                            receivedMessage
+                        )
 
-                    is ClientSocketMessage.PlayerLeaving -> game.handlePlayerLeavingRequest(
-                        thisConnection,
-                        thisPlayer
-                    )
+                        is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
 
-                    // Handle game
-                    is ClientSocketMessage.ChatMessage -> game.handleChatMessage(
-                        thisConnection,
-                        thisPlayer,
-                        receivedMessage
-                    )
+                        is ClientSocketMessage.HostRouteDTO -> game.handleHostRoute(receivedMessage)
 
-                    is ClientSocketMessage.GameState -> game.handleGameState(receivedMessage, this)
+                        is ClientSocketMessage.HostFlowDTO -> game.handleHostFlow(receivedMessage)
 
-                    is ClientSocketMessage.HostRouteDTO -> game.handleHostRoute(receivedMessage)
+                        is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
+                            thisConnection,
+                            receivedMessage,
+                            thisPlayer
+                        )
 
-                    is ClientSocketMessage.HostFlowDTO -> game.handleHostFlow(receivedMessage)
+                        is ClientSocketMessage.FixRouterDTO -> game.handleFixRouterDTO(thisConnection, receivedMessage)
 
-                    is ClientSocketMessage.UpgradeDTO -> game.handleUpgradeDTO(
-                        thisConnection,
-                        receivedMessage,
-                        thisPlayer
-                    )
-
-                    is ClientSocketMessage.FixRouterDTO -> game.handleFixRouterDTO(thisConnection, receivedMessage)
-
-                    is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
-                        thisConnection,
-                        receivedMessage,
-                        thisPlayer,
-                        this
+                        is ClientSocketMessage.QuizAnswerDTO -> game.handleQuizAnswerDTO(
+                            thisConnection,
+                            receivedMessage,
+                            thisPlayer,
+                            this
+                        )
+                    }
+                } catch (e: IllegalArgumentException) {
+                    println("IllegalArgumentException: ${e.message}")
+                    thisConnection.sendServerSocketMessage(
+                        ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
                     )
                 }
             }
-        }
-        catch (e: IllegalArgumentException) {
-            thisConnection.sendServerSocketMessage(
-                ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
-            )
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
+            println("Exception: ${e.message}")
             println(e.localizedMessage)
         } finally {
             println("Removing $thisConnection!")
