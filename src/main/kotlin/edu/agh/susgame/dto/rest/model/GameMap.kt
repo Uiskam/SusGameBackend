@@ -49,4 +49,4 @@ data class GameMapRouterDTO(
 )
 
 @Serializable
-data class GameMapEdgeDTO(val from: Int, val to: Int, val weight: Int)
+data class GameMapEdgeDTO(val id: Int, val from: Int, val to: Int, val weight: Int)

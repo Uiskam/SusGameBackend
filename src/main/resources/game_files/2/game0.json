@@ -31,12 +31,12 @@
   ],
   "edges": [
     {
-      "weight": 10,
+      "weight": 10000,
       "from": 0,
       "to": 2
     },
     {
-      "weight": 10,
+      "weight": 10000,
       "from": 1,
       "to": 2
     },

@@ -42,6 +42,7 @@ object RestParser {
         edges = netGraph.getEdges().toList().map { edge ->
             val (fromNodeId, toNodeId) = edge.connectedNodesIds
             GameMapEdgeDTO(
+                id = edge.index,
                 from = fromNodeId,
                 to = toNodeId,
                 weight = edge.getWeight()

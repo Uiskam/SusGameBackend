@@ -25,7 +25,7 @@ fun nextEdgeUpgradeCost(upgradeCost: Int) = upgradeCost + ceil(EDGE_UPGRADE_COST
 fun nextEdgeWeight(weight: Int) = weight + ceil(EDGE_UPGRADE_WEIGHT_COEFF * weight).toInt()
 
 const val PLAYER_BASE_MONEY = 0
-const val PLAYER_MAX_PACKETS_PER_TICK = 20
+const val PLAYER_MAX_PACKETS_PER_TICK = 10001
 const val PLAYER_DEFAULT_PACKETS_PER_TICK = 0
 
 const val GAME_DEFAULT_PACKETS_DELIVERED_GOAL = 1000

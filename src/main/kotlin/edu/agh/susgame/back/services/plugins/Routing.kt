@@ -11,7 +11,7 @@ import java.time.Duration
 fun Application.configureRouting() {
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(600)
         maxFrameSize = Long.MAX_VALUE
         masking = false
     }

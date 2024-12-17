@@ -16,25 +16,20 @@ class GamesRestImpl : GamesRest {
     private val gameStorage = GameStorage(
         games = listOf(
             Game(
-                name = "Gra do testowania v0.1 engine",
+                name = "Gra Michała",
                 id = 0,
                 maxNumberOfPlayers = 4,
             ),
             Game(
-                name = "Gra nr 1",
+                name = "Gra Jurka",
                 id = 1,
                 maxNumberOfPlayers = 5,
             ),
             Game(
-                name = "Gra inna",
+                name = "Gra zabezpieczona pinem",
                 id = 2,
                 maxNumberOfPlayers = 6,
                 gamePin = "pin",
-            ),
-            Game(
-                name = "Gra III",
-                id = 3,
-                maxNumberOfPlayers = 3,
             ),
         )
     )
@@ -45,7 +40,10 @@ class GamesRestImpl : GamesRest {
         GetAllGamesApiResult.Success(gameStorage.getLobbyRows())
     }
 
-    override fun getGameDetails(gameId: LobbyId, gamePin: LobbyPin?): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
+    override fun getGameDetails(
+        gameId: LobbyId,
+        gamePin: LobbyPin?
+    ): CompletableFuture<GetGameApiResult> = CompletableFuture.supplyAsync {
         gameStorage.findGameById(gameId.value)?.let { game ->
             try {
                 game.checkPinMatch(gamePin?.value)
@@ -59,12 +57,12 @@ class GamesRestImpl : GamesRest {
     override fun createGame(
         gameName: String,
         maxNumberOfPlayers: Int,
-        gamePin: String?
+        gamePin: LobbyPin?
     ): CompletableFuture<CreateGameApiResult> = CompletableFuture.supplyAsync {
         gameStorage.findGameByName(gameName)?.let {
             CreateGameApiResult.NameAlreadyExists
         } ?: run {
-            val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin)
+            val newGame = Game(gameName, nextGameId.getAndIncrement(), maxNumberOfPlayers, gamePin = gamePin?.value)
             gameStorage.add(newGame)
             CreateGameApiResult.Success(createdLobbyId = LobbyId(newGame.id))
         }

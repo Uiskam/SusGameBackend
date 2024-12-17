@@ -4,7 +4,9 @@ import edu.agh.susgame.back.domain.net.Player
 import edu.agh.susgame.back.services.socket.GamesWebSocketConnection
 import edu.agh.susgame.config.GAME_QUESTION_SENDING_INTERVAL
 import edu.agh.susgame.dto.socket.ServerSocketMessage
+import io.ktor.websocket.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 
 data class QuizQuestion(
@@ -13,7 +15,7 @@ data class QuizQuestion(
     val correctAnswer: Int,
 )
 
-class QuizManager{
+class QuizManager {
     private val playerQuizState = mutableMapOf<Player, Int?>()
     private val quizQuestions = QuizQuestions
 
@@ -22,15 +24,22 @@ class QuizManager{
         return Pair(randomIndex, QuizQuestions[randomIndex])
     }
 
-    suspend fun answerQuestion(player: Player, connection: GamesWebSocketConnection, answer: Int) {
-        val questionId =
-            playerQuizState[player] ?: throw IllegalStateException("Player $player has no question assigned")
-        val correctAnswer = quizQuestions[questionId].correctAnswer
-        if (answer == correctAnswer) {
-            player.addMoneyForCorrectAnswer()
+    fun answerQuestion(
+        webSocket: WebSocketSession,
+        player: Player,
+        connection: GamesWebSocketConnection,
+        answer: Int
+    ) {
+        webSocket.launch {
+            val questionId =
+                playerQuizState[player] ?: throw IllegalStateException("Player $player has no question assigned")
+            val correctAnswer = quizQuestions[questionId].correctAnswer
+            if (answer == correctAnswer) {
+                player.addMoneyForCorrectAnswer()
+            }
+            delay(GAME_QUESTION_SENDING_INTERVAL)
+            assignNewQuestionForPlayer(player, connection)
         }
-        delay(GAME_QUESTION_SENDING_INTERVAL)
-        assignNewQuestionForPlayer(player, connection)
     }
 
     private suspend fun assignNewQuestionForPlayer(player: Player, connection: GamesWebSocketConnection) {
@@ -46,10 +55,12 @@ class QuizManager{
         )
     }
 
-    suspend fun init(playerMap: Map<GamesWebSocketConnection, Player>) {
-        delay(GAME_QUESTION_SENDING_INTERVAL)
-        playerMap.forEach { (connection, player) ->
-            assignNewQuestionForPlayer(player, connection)
+    fun init(webSocket: WebSocketSession, playerMap: Map<GamesWebSocketConnection, Player>) {
+        webSocket.launch {
+            delay(GAME_QUESTION_SENDING_INTERVAL)
+            playerMap.forEach { (connection, player) ->
+                assignNewQuestionForPlayer(player, connection)
+            }
         }
     }
 

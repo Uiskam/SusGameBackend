@@ -1,8 +1,9 @@
 package rest_test
 
 
-import edu.agh.susgame.dto.rest.model.Lobby
+import edu.agh.susgame.dto.rest.model.LobbyDetails
 import edu.agh.susgame.dto.rest.model.LobbyId
+import edu.agh.susgame.dto.rest.model.LobbyRow
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -24,9 +25,9 @@ class GameRestTest {
         val response = client.get("/games")
         assertEquals(HttpStatusCode.OK, response.status)
         val responseBody = response.bodyAsText()
-        val lobbyList: List<Lobby> = Json.decodeFromString(responseBody)
-        assertEquals(4, lobbyList.size)
-        assertEquals("Gra do testowania v0.1 engine", lobbyList[0].name)
+        val lobbyList: List<LobbyRow> = Json.decodeFromString(responseBody)
+        assertEquals(3, lobbyList.size)
+        assertEquals("Gra Michała", lobbyList[0].name)
     }
 
 
@@ -41,12 +42,12 @@ class GameRestTest {
         val response2 = client.get("/games/0")
         assertEquals(HttpStatusCode.OK, response2.status)
         val responseBody = response2.bodyAsText()
-        val lobby = Json.decodeFromString<Lobby>(responseBody)
-        val expectedLobby = Lobby(
+        val lobby = Json.decodeFromString<LobbyDetails>(responseBody)
+        val expectedLobby = LobbyDetails(
             LobbyId(0),
-            "Gra do testowania v0.1 engine",
+            "Gra Michała",
+            false,
             4,
-            10,
             emptyList()
         )
         assertEquals(expectedLobby, lobby)
@@ -73,8 +74,8 @@ class GameRestTest {
         response = client.get("/games")
         assertEquals(HttpStatusCode.OK, response.status)
         val responseBody = response.bodyAsText()
-        val lobbyList: List<Lobby> = Json.decodeFromString(responseBody)
-        assertEquals(3, lobbyList.size)
+        val lobbyList: List<LobbyRow> = Json.decodeFromString(responseBody)
+        assertEquals(2, lobbyList.size)
         assertEquals(1, lobbyList[0].id.value)
     }
 
