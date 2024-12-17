@@ -54,12 +54,12 @@
   ],
   "edges": [
     {
-      "weight": 4,
+      "weight": 10000,
       "from": 0,
       "to": 4
     },
     {
-      "weight": 2,
+      "weight": 10000,
       "from": 1,
       "to": 4
     },
@@ -74,12 +74,12 @@
       "to": 5
     },
     {
-      "weight": 5,
+      "weight": 10000,
       "from": 4,
       "to": 6
     },
     {
-      "weight": 4,
+      "weight": 10000,
       "from": 5,
       "to": 6
     },
