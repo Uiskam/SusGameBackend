@@ -43,6 +43,7 @@ class QuizManager {
     }
 
     private suspend fun assignNewQuestionForPlayer(player: Player, connection: GamesWebSocketConnection) {
+        println("-----SENDING QUIESTION!!!!!!! ${player.name}----------")
         val (questionId, question) = getRandomQuestion()
         playerQuizState[player] = questionId
         connection.sendServerSocketMessage(
@@ -57,7 +58,7 @@ class QuizManager {
 
     fun init(webSocket: WebSocketSession, playerMap: Map<GamesWebSocketConnection, Player>) {
         webSocket.launch {
-            delay(GAME_QUESTION_SENDING_INTERVAL)
+            delay(2000)
             playerMap.forEach { (connection, player) ->
                 assignNewQuestionForPlayer(player, connection)
             }
