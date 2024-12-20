@@ -20,6 +20,7 @@ class Router(
     override val index: Int,
     override val coordinates: Pair<Int, Int>,
     private var bufferSize: Int,
+    private var upgradeCost: Int = ROUTER_DEFAULT_UPGRADE_COST
 ) : Receiving() {
 
     // Input buffer containing the packets received in a queue for every neighbor.
@@ -29,7 +30,7 @@ class Router(
     private val buffer: HashMap<Node, ArrayDeque<Packet>> = hashMapOf()
 
     // cost of the next buffer capacity upgrade
-    private var upgradeCost: Int = ROUTER_DEFAULT_UPGRADE_COST
+    // private var upgradeCost: Int = ROUTER_DEFAULT_UPGRADE_COST
 
     // Variable defining if router is working. Changes, when the router is overheated.
     private var isWorking: Boolean = true

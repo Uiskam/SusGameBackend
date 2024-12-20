@@ -15,8 +15,11 @@ const val MONEY_GAIN_PER_ITERATION = 0
 const val ROUTER_UPGRADE_COST_COEFF = 0.2
 const val ROUTER_UPGRADE_BUFFER_SIZE_COEFF = 0.1
 const val ROUTER_DEFAULT_UPGRADE_COST = 100
+const val ROUTER_BUFFER_MINIMAL_SIZE = 0
 fun nextRouterUpgradeCost(upgradeCost: Int) = upgradeCost + ceil(upgradeCost * ROUTER_UPGRADE_COST_COEFF).toInt()
-fun nextRouterBufferSize(bufferSize: Int) = bufferSize + ceil(bufferSize * ROUTER_UPGRADE_BUFFER_SIZE_COEFF).toInt()
+const val ROUTER_BUFFER_UPGRADE_STEP = 5
+fun nextRouterBufferSize(bufferSize: Int) = bufferSize + ROUTER_BUFFER_UPGRADE_STEP
+
 
 const val EDGE_UPGRADE_COST_COEFF = 0.2
 const val EDGE_UPGRADE_WEIGHT_COEFF = 0.1

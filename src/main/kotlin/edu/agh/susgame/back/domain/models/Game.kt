@@ -277,12 +277,7 @@ class Game(
 
         if (areAllPlayersReady()) {
             gameStatus = GameStatus.RUNNING
-            try {
-                startGame()
-            } catch (e: IllegalArgumentException) {
-                sendErrorMessage(e.message ?: "Unknown error")
-                return
-            }
+            startGame()
             notifyAllAboutGameStart()
 
             // GAME IS RUNNING
