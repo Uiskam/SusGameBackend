@@ -7,8 +7,7 @@ import edu.agh.susgame.back.domain.net.node.Host
 import edu.agh.susgame.back.domain.net.node.Node
 import edu.agh.susgame.back.domain.net.node.Router
 import edu.agh.susgame.back.domain.net.node.Server
-import edu.agh.susgame.config.GAME_DEFAULT_PACKETS_DELIVERED_GOAL
-import edu.agh.susgame.config.GAME_TIME_DEFAULT
+import edu.agh.susgame.config.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -18,8 +17,7 @@ data class NodeJson(val type: String, val coordinates: Coordinates, val bufferSi
 
 @Serializable
 data class Coordinates(
-    val x: Int,
-    val y: Int
+    val x: Int, val y: Int
 )
 
 @Serializable
@@ -29,6 +27,8 @@ data class EdgeJson(val weight: Int, val from: Int, val to: Int)
 data class GraphJson(
     val gameTime: Int = GAME_TIME_DEFAULT,
     val gameGoal: Int = GAME_DEFAULT_PACKETS_DELIVERED_GOAL,
+    val routerBufferUpgradeStep: Int = ROUTER_BUFFER_UPGRADE_STEP,
+    val routerBufferMinimalSize: Int = ROUTER_BUFFER_MINIMAL_SIZE,
     val nodes: List<NodeJson>,
     val edges: List<EdgeJson>
 )
@@ -81,13 +81,24 @@ class GameConfigParser {
             val coordinates = Pair(nodeJson.coordinates.x, nodeJson.coordinates.y)
             val node = when (nodeJson.type) {
                 "Host" -> {
-                    val player = players.getOrNull(playerIndex)
-                        ?: throw IllegalArgumentException("Not enough players for hosts")
-                        playerIndex++
+                    val player =
+                        players.getOrNull(playerIndex) ?: throw IllegalArgumentException("Not enough players for hosts")
+                    playerIndex++
                     Host(nodeIndex, coordinates, player)
                 }
 
-                "Router" -> Router(nodeIndex, coordinates, nodeJson.bufferSize!!)
+                "Router" -> {
+                    val bufferSize = nodeJson.bufferSize!!
+                    val routerLvl = (bufferSize / gameData.routerBufferUpgradeStep).toInt()
+                    var upgradeCost = ROUTER_DEFAULT_UPGRADE_COST
+                    for (i in 0 until routerLvl) {
+                        upgradeCost = nextRouterUpgradeCost(upgradeCost)
+                    }
+                    Router(
+                        nodeIndex, coordinates, bufferSize, upgradeCost
+                    )
+                }
+
                 "Server" -> Server(nodeIndex, coordinates)
                 else -> throw IllegalArgumentException("Unknown node type")
             }

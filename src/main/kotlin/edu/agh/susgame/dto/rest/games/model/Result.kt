@@ -31,6 +31,7 @@ sealed class GetGameApiResult(responseCode: Int) : ApiResult(responseCode) {
 }
 
 
+
 sealed class GetGameMapApiResult(responseCode: Int) : ApiResult(responseCode) {
     data class Success(
         val gameMap: GameMapDTO,

@@ -18,7 +18,7 @@ class GamesRestImpl : GamesRest {
             Game(
                 name = "Gra Michała",
                 id = 0,
-                maxNumberOfPlayers = 4,
+                maxNumberOfPlayers = 6,
             ),
             Game(
                 name = "Gra Jurka",

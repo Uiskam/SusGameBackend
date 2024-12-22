@@ -118,6 +118,11 @@ fun Route.joinGameWebSocket() {
                     thisConnection.sendServerSocketMessage(
                         ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
                     )
+                } catch (e: IllegalStateException) {
+                    println("IllegalStateException: ${e.message}")
+                    thisConnection.sendServerSocketMessage(
+                        ServerSocketMessage.ServerError(errorMessage = e.message ?: "Unknown error")
+                    )
                 }
             }
         } catch (e: Exception) {
