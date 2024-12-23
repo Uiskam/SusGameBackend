@@ -23,7 +23,7 @@ application {
 
 ktor {
     fatJar {
-        archiveFileName.set("CyberSurfers.jar")
+        archiveFileName.set("CyberSurfersServer.jar")
     }
 }
 
