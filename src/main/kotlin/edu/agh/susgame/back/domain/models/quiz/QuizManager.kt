@@ -45,6 +45,7 @@ class QuizManager {
     private suspend fun assignNewQuestionForPlayer(player: Player, connection: GamesWebSocketConnection) {
         val (questionId, question) = getRandomQuestion()
         playerQuizState[player] = questionId
+        
         connection.sendServerSocketMessage(
             ServerSocketMessage.QuizQuestionDTO(
                 questionId = questionId,
