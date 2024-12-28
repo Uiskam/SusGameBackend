@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 class Game(
-    val name: String,
+    var name: String,
     val id: Int,
     val maxNumberOfPlayers: Int,
     // TODO This should be `LobbyPin`
@@ -395,6 +395,8 @@ class Game(
                 }
                 delay(CLIENT_REFRESH_FREQUENCY)  // delay should be used from kotlinx.coroutines
             }
+            //set game name to random uuid
+            name = java.util.UUID.randomUUID().toString()
         }
     }
 
