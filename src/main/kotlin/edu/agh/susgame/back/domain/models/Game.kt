@@ -136,7 +136,7 @@ class Game(
     /**
      * Starts the game by generating the graph, setting the start time and changing the game status to running
      */
-    private fun startGame(graph: NetGraph? = null) {
+    private fun startGame(graph: NetGraph? = null){
         val (parsedGraph, gameLength, gameGoal) = GameInitializer.getGameParams(playerMap.values.toList())
         this.gameGoal = gameGoal
         this.gameLength = gameLength
@@ -276,8 +276,8 @@ class Game(
         }
 
         if (areAllPlayersReady()) {
-            gameStatus = GameStatus.RUNNING
             startGame()
+            gameStatus = GameStatus.RUNNING
             notifyAllAboutGameStart()
 
             // GAME IS RUNNING
