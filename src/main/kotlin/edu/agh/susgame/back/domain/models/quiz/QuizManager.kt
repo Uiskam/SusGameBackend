@@ -60,9 +60,16 @@ class QuizManager {
 
     fun init(webSocket: WebSocketSession, playerMap: Map<GamesWebSocketConnection, Player>) {
         val reader = BufferedReader(FileReader("game_files/pytania.csv"))
-        reader.readLine() // Pominięcie nagłówka
+        val header = reader.readLine() // Pominięcie nagłówka
+        val semicolonCount = header.count { it == ';' }
+        println("header: $header, semicolonCount: $semicolonCount")
+        val separator: String = if (semicolonCount > 2) {
+            ";"
+        } else {
+            ",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)"
+        }
         reader.lineSequence().forEachIndexed { index, line ->
-            val parts = line.split(Regex(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")).map { it.trim('"') }
+            val parts = line.split(Regex(separator)).map { it.trim('"') }
             if (parts.size == 1 && parts[0].isBlank()) {
                 return@forEachIndexed
             }
@@ -71,6 +78,9 @@ class QuizManager {
                 val answers = parts.subList(1, parts.size - 1)
                 var correctAnswer = parts.last().toIntOrNull()
                     ?: throw IllegalArgumentException("Numer poprawnej odpowiedzi nie jest liczbą w wierszu: $index")
+                if (correctAnswer < 1 || correctAnswer > 4) {
+                    throw IllegalArgumentException("Numer poprawnej odpowiedzi jest poza zakresem 1-4 w wierszu: $index")
+                }
                 correctAnswer--
                 quizQuestions.add(QuizQuestion(question, answers, correctAnswer))
             } else {

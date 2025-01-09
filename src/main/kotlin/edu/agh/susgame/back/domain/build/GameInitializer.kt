@@ -13,8 +13,10 @@ object GameInitializer {
         val randomFile = if (files != null && files.isNotEmpty()) {
             files[Random.nextInt(files.size)]
         } else {
+            println("No game map for ${players.size} players! (directory: ${directory.absolutePath})")
             throw IllegalArgumentException("No game map for ${players.size} players! (directory: ${directory.absolutePath})")
         }
+
 
         return GameConfigParser().parseFromFile(randomFile.absolutePath, players)
     }
