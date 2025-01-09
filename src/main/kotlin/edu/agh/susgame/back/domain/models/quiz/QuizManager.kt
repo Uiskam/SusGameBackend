@@ -7,6 +7,8 @@ import edu.agh.susgame.dto.socket.ServerSocketMessage
 import io.ktor.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.BufferedReader
+import java.io.FileReader
 
 
 data class QuizQuestion(
@@ -17,11 +19,11 @@ data class QuizQuestion(
 
 class QuizManager {
     private val playerQuizState = mutableMapOf<Player, Int?>()
-    private val quizQuestions = QuizQuestions
+    private var quizQuestions = mutableListOf<QuizQuestion>()
 
     private fun getRandomQuestion(): Pair<Int, QuizQuestion> {
-        val randomIndex = QuizQuestions.indices.random()
-        return Pair(randomIndex, QuizQuestions[randomIndex])
+        val randomIndex = quizQuestions.indices.random()
+        return Pair(randomIndex, quizQuestions[randomIndex])
     }
 
     fun answerQuestion(
@@ -57,6 +59,26 @@ class QuizManager {
     }
 
     fun init(webSocket: WebSocketSession, playerMap: Map<GamesWebSocketConnection, Player>) {
+        val reader = BufferedReader(FileReader("game_files/pytania.csv"))
+        reader.readLine() // Pominięcie nagłówka
+        reader.lineSequence().forEachIndexed { index, line ->
+            val parts = line.split(Regex(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")).map { it.trim('"') }
+            if (parts.size == 1 && parts[0].isBlank()) {
+                return@forEachIndexed
+            }
+            if (parts.size == 6) {
+                val question = parts[0]
+                val answers = parts.subList(1, parts.size - 1)
+                var correctAnswer = parts.last().toIntOrNull()
+                    ?: throw IllegalArgumentException("Numer poprawnej odpowiedzi nie jest liczbą w wierszu: $index")
+                correctAnswer--
+                quizQuestions.add(QuizQuestion(question, answers, correctAnswer))
+            } else {
+                throw IllegalArgumentException("Zła liczba wartości (${parts.size}) w wierszu: $line")
+            }
+        }
+        reader.close()
+
         webSocket.launch {
             delay(GAME_QUESTION_SENDING_INTERVAL)
             playerMap.forEach { (connection, player) ->

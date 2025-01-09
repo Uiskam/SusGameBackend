@@ -143,7 +143,6 @@ class Game(
         playersInGame = playerMap.values.toList()
         netGraph = graph ?: parsedGraph
         bfs = BFS(net = netGraph, root = netGraph.getServer())
-        gameStatus = GameStatus.RUNNING
         startTime = System.currentTimeMillis()
     }
 
@@ -277,13 +276,14 @@ class Game(
 
         if (areAllPlayersReady()) {
             startGame()
+            quizManager.init(webSocket, playerMap)
             gameStatus = GameStatus.RUNNING
             notifyAllAboutGameStart()
 
+            gameStatus = GameStatus.RUNNING
             // GAME IS RUNNING
             broadcastStateThread(webSocket)
             runEngineIterationThread(webSocket)
-            quizManager.init(webSocket, playerMap)
         } else {
             sendErrorMessage("Not all players are ready")
         }

@@ -1,5 +1,6 @@
 package edu.agh.susgame.back.domain.models.quiz
 
+/*
 val QuizQuestions = listOf(
     QuizQuestion(
         question = "Skąd najlepiej pobierać aplikacje na telefon?",
@@ -564,3 +565,4 @@ val QuizQuestions = listOf(
 
 
 )
+*/
