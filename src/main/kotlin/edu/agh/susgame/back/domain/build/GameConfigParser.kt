@@ -12,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
 
+
 @Serializable
 data class NodeJson(val type: String, val coordinates: Coordinates, val bufferSize: Int? = null)
 
